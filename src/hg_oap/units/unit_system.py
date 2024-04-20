@@ -3,9 +3,14 @@ from dataclasses import dataclass, field
 from decimal import Decimal
 from functools import reduce
 from itertools import chain, combinations
-from typing import ClassVar, Tuple, Iterable
+from typing import ClassVar, Tuple, Iterable, TYPE_CHECKING
 
 from hg_oap.utils.exprclass import CallableDescriptor
+
+if TYPE_CHECKING:
+    from hg_oap.units.dimension import Dimension
+    from hg_oap.units.quantity import Quantity
+    from hg_oap.units.unit import Unit
 
 
 @dataclass

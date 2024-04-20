@@ -1,7 +1,11 @@
 from dataclasses import dataclass
+from decimal import Decimal
 from enum import Enum
 
 from hg_oap.assets.asset import FinancialAsset
+from hg_oap.units.dimension import PrimaryDimension
+from hg_oap.units.unit import PrimaryUnit, DerivedUnit
+from hg_oap.units.unit_system import UnitSystem
 
 
 @dataclass(frozen=True)
@@ -12,6 +16,11 @@ class Currency(FinancialAsset):
     """
     is_minor_currency: bool = False  # For example US cents rather than dollars
 
+    def __post_init__(self):
+        # Register currency units
+        dimension = PrimaryDimension(name=f"{self.symbol}_Currency")
+        PrimaryUnit(name=self.symbol, dimension=dimension)
+
 
 @dataclass(frozen=True)
 class MinorCurrency(Currency):
@@ -20,16 +29,23 @@ class MinorCurrency(Currency):
     is stored as ratio.
     """
     major_currency: Currency = None
-    ratio: float = 100.0
+    ratio: Decimal = Decimal("0.01")
+
+    def __post_init__(self):
+        DerivedUnit(primary_unit=getattr(UnitSystem.instance(), self.major_currency.symbol),
+                    ratio=self.ratio,
+                    name=self.symbol)
 
     def to_major_currency(self, value: float) -> float:
-        return value * self.ratio
+        return value * float(self.ratio)
 
 
 class Currencies(Enum):
     """The collection of known currencies"""
-    EUR = Currency("EUR")
-    GBP = (gbp_ := Currency("GBP"))
-    GBX = MinorCurrency("GBX", major_currency=gbp_)
-    USD = (usd_ := Currency("USD"))
-    USX = MinorCurrency("USX", major_currency=usd_)
+    CAD = Currency(symbol="CAD")
+    EUR = Currency(symbol="EUR")
+    GBP = (gbp_ := Currency(symbol="GBP"))
+    GBX = MinorCurrency(symbol="GBX", major_currency=gbp_)
+    USD = (usd_ := Currency(symbol="USD"))
+    USX = MinorCurrency(symbol="USX", major_currency=usd_)
+    ZAR = Currency(symbol="ZAR")

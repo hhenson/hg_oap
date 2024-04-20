@@ -8,6 +8,7 @@ from hg_oap.units.unit_system import UnitSystem
 @dataclass(frozen=True, kw_only=True)
 class Dimension:
     name: str = None
+    category = None  # Relationship model, to describe now dimensions are related?
 
     def __new__(cls, name=None):
         assert cls is not Dimension, 'Base Dimension types is not instantiable.'
@@ -63,6 +64,10 @@ class Dimensionless(Dimension):
 
 @dataclass(frozen=True)
 class PrimaryDimension(Dimension):
+
+    def __new__(cls, name=None):
+        super().__new__(cls)
+
     def __hash__(self):
         return id(self)
 
