@@ -21,6 +21,7 @@ class InstrumentId(TimeSeriesSchema):
 
 @dataclass(frozen=True)
 class Instrument(CompoundScalar):
+    contract: Contract
     symbol: str
 
 
