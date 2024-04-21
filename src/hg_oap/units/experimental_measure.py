@@ -1,5 +1,8 @@
 from dataclasses import dataclass, field
+from decimal import Decimal
 from typing import NamedTuple
+
+from frozendict import frozendict
 
 from hg_oap.utils.exprclass import ExprClass
 
@@ -8,6 +11,12 @@ from hg_oap.utils.exprclass import ExprClass
 class Unit(ExprClass):
     symbol: str
     name: str
+
+
+@dataclass(frozen=True)
+class DerivedUnit(Unit):
+    parent: Unit
+    ratio: Decimal
 
 
 @dataclass
@@ -49,10 +58,13 @@ lot = Unit(symbol='L', name='lot')
 unit = Unit(symbol='', name='unit')
 ounce = Unit(symbol='oz', name="ounce")
 gram = Unit(symbol='g', name="gram")
+kilogram = DerivedUnit(symbol='kg', name='kilogram', parent=gram, ratio=Decimal("1000.0"))
+milligram = DerivedUnit(symbol='mg', name='milligram', parent=gram, ratio=Decimal("0.001"))
+microgram = DerivedUnit(symbol='ug', name='microgram', parent=gram, ratio=Decimal("0.000001"))
 
 weight = Category(name='weight')
 imperial_weights = Category(name='imperial weight', is_a={weight}, units={ounce})
-si_weights = Category(name='si weight', is_a={weight}, units={gram})
+si_weights = Category(name='si weight', is_a={weight}, units={gram, kilogram, milligram, microgram})
 
 currency = Category(name='currency')
 USD = Category(name='USD', is_a={currency})
