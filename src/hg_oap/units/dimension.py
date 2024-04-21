@@ -65,7 +65,7 @@ class Dimensionless(Dimension):
 class PrimaryDimension(Dimension):
 
     def __new__(cls, name=None):
-        super().__new__(cls)
+        return super().__new__(cls)
 
     def __hash__(self):
         return id(self)
