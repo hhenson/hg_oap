@@ -2,6 +2,7 @@ from dataclasses import dataclass
 
 import pytest
 
+import hg_oap.quanity.conversion
 from hg_oap.units.unit import Unit
 from hg_oap.units.dimension import PrimaryDimension, DerivedDimension, Dimension
 from hg_oap.utils.exprclass import ExprClass
@@ -83,6 +84,22 @@ def test_unit_conversion_1():
 
         with pytest.raises(ValueError):
             (U.meter/U.second).convert(1., to=U.meter_sq)
+
+
+def test_conversion_2():
+    with UnitSystem(__prefixes__={'m': 0.001}) as U:
+        U.length = PrimaryDimension()
+        U.meter = PrimaryUnit(dimension=U.length)
+
+        U.volume = U.length**3
+        U.cubic_meter = U.meter**3
+        U.liter = 0.001 * U.cubic_meter
+
+        U.bushel = 35.2391 * U.liter
+        U.pint = 0.568 * U.liter
+        U.add_prefixes(U.pint, ('m',))
+
+        assert (U.mpint**-1).convert(1., to=U.bushel**-1) == 1/0.000568 * 35.2391
 
 
 def test_offset_units():
@@ -221,7 +238,7 @@ def test_contexts_and_conversion_factors_2():
 
 
         asset = MyAsset('corn', Quantity(0.75, U.kg / U.liter))
-        instrument = MyInstrument(asset, 10000, U.bushel, U.cent, 0.25, 'USD')
+        instrument = MyInstrument(asset=asset, lot_size=10000., unit=U.bushel, price_unit=U.cent, price_tick_size=0.25, price_currency='USD')
 
         with instrument:
             assert U.lot.convert(1., to=U.bushel) == 10000.

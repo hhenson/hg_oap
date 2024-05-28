@@ -292,7 +292,7 @@ class DiffDerivedUnit(DerivedUnit):
         return NotImplemented
 
 
-@dataclass(frozen=True, kw_only=True, init=False)
+@dataclass(frozen=True, kw_only=True, init=False, repr=False)
 class ComplexUnit(Unit):
     components: Tuple[Tuple[Unit, int], ...]
     scale: float = 1.0
@@ -342,7 +342,10 @@ class ComplexUnit(Unit):
             return self.components if power == 1 else tuple((u, p * power) for u, p in self.components)
 
     def __pow__(self, power, modulo=None):
-        return ComplexUnit(components=tuple((u, p * power) for u, p in self.components))
+        if self.scale == 1.0:
+            return ComplexUnit(components=tuple((u, p * power) for u, p in self.components))
+        else:
+            return ComplexUnit(self.scale**power * ComplexUnit(components=tuple((u, p * power) for u, p in self.components)))
 
     def __mul__(self, other):
         if isinstance(other, (PrimaryUnit, DerivedUnit, ComplexUnit)):
