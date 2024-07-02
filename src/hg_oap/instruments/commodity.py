@@ -12,4 +12,3 @@ class ThreeMonthBaseMetals(Enum):
     MPB_3M = Future("MPB_3M", Tenor("3m"), asset=BaseMetals.MPB)
     MSN_3M = Future("MSN_3M", Tenor("3m"), asset=BaseMetals.MSN)
     MZN_3M = Future("MZN_3M", Tenor("3m"), asset=BaseMetals.MZN)
-

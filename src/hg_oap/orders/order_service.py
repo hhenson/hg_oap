@@ -3,13 +3,32 @@ from dataclasses import dataclass, field
 from typing import Any, cast
 
 from frozendict import frozendict
-from hgraph import request_reply_service, TSD, TS, service_impl, feedback, TSB, \
-    compute_node, map_, TSB_OUT, HgTSTypeMetaData, STATE, TimeSeriesSchema, graph, emit
+from hgraph import (
+    request_reply_service,
+    TSD,
+    TS,
+    service_impl,
+    feedback,
+    TSB,
+    compute_node,
+    map_,
+    TSB_OUT,
+    HgTSTypeMetaData,
+    STATE,
+    TimeSeriesSchema,
+    graph,
+    emit,
+)
 
 from hg_oap.assets.currency import Currencies
 from hg_oap.orders.order import ORDER, OrderState, SingleLegOrder, MultiLegOrder, order_states
-from hg_oap.orders.order_request_response_events import OrderRequest, CreateOrderRequest, OrderResponse, OrderEvent, \
-    FillEvent
+from hg_oap.orders.order_request_response_events import (
+    OrderRequest,
+    CreateOrderRequest,
+    OrderResponse,
+    OrderEvent,
+    FillEvent,
+)
 from hg_oap.orders.order_type import MultiLegOrderType, SingleLegOrderType
 
 __all__ = ("order_client", "order_handler", "OrderHandlerOutputs", "OrderHandlerOutput")
@@ -24,7 +43,8 @@ def order_client(path: str, request: TS[OrderRequest]) -> TS[OrderResponse]:
 
 @dataclass
 class OrderHandlerOutput(TimeSeriesSchema):
-    """Response structure from a """
+    """Response structure from a"""
+
     order_response: TS[OrderResponse]
     order_event: TS[OrderEvent]
 
@@ -76,16 +96,19 @@ def order_handler(fn):
     """
     # determine type or order state we are looking for based on the wrapped code.
     from hgraph import PythonWiringNodeClass
-    signature = cast(PythonWiringNodeClass, fn).signature
-    needs_map: bool = isinstance(signature.input_types['request'], HgTSTypeMetaData)
-    if needs_map:
-        bundle_tp = signature.input_types['order_state']
-    else:
-        bundle_tp = signature.input_types['order_state'].value_tp
 
-    order_state_tp = bundle_tp.bundle_schema_tp.meta_data_schema['requested'].bundle_schema_tp.py_type
-    assert order_state_tp in (SingleLegOrder, MultiLegOrder), \
-        "Expect this to be either a SingleLegOrder or MultiLegOrder"
+    signature = cast(PythonWiringNodeClass, fn).signature
+    needs_map: bool = isinstance(signature.input_types["request"], HgTSTypeMetaData)
+    if needs_map:
+        bundle_tp = signature.input_types["order_state"]
+    else:
+        bundle_tp = signature.input_types["order_state"].value_tp
+
+    order_state_tp = bundle_tp.bundle_schema_tp.meta_data_schema["requested"].bundle_schema_tp.py_type
+    assert order_state_tp in (
+        SingleLegOrder,
+        MultiLegOrder,
+    ), "Expect this to be either a SingleLegOrder or MultiLegOrder"
 
     @service_impl(interfaces=(order_states, order_client))
     def _order_handler_impl(path: str):
@@ -94,18 +117,19 @@ def order_handler(fn):
         order_client_input = order_client.wire_impl_inputs_stub(path).request
         requests = _convert_to_tsd_by_order_id(order_client_input)
 
-        _compute_order_state = _compute_order_state_single if order_state_tp is SingleLegOrder else _compute_order_state_multi
+        _compute_order_state = (
+            _compute_order_state_single if order_state_tp is SingleLegOrder else _compute_order_state_multi
+        )
         order_state = map_(_compute_order_state, requests, order_responses_fb())
-        order_states[ORDER: order_state_tp].wire_impl_out_stub(path, order_state)
+        order_states[ORDER:order_state_tp].wire_impl_out_stub(path, order_state)
 
         if needs_map:
-            result: TSD[str, TSB[OrderHandlerOutputs]] = \
-                map_(lambda request_, order_state_: _to_tuple(fn(emit(request_), order_state_)), requests,
-                     order_state)
+            result: TSD[str, TSB[OrderHandlerOutputs]] = map_(
+                lambda request_, order_state_: _to_tuple(fn(emit(request_), order_state_)), requests, order_state
+            )
         else:
             requests = _flatten(requests)
-            result: TSD[str, TSB[OrderHandlerOutputs]] = \
-                fn(requests, order_state)
+            result: TSD[str, TSB[OrderHandlerOutputs]] = fn(requests, order_state)
 
         order_responses_fb(result)
         order_client_outputs = _map_response_to_request(order_client_input, result)
@@ -116,7 +140,7 @@ def order_handler(fn):
 
 @dataclass
 class MapRequestToIdSate:
-    requests: dict[tuple: int] = field(default_factory=dict)
+    requests: dict[tuple:int] = field(default_factory=dict)
 
 
 def _key_from_request(request: OrderRequest) -> tuple:
@@ -125,8 +149,10 @@ def _key_from_request(request: OrderRequest) -> tuple:
 
 @compute_node(valid=("requests",))
 def _map_response_to_request(
-        requests: TSD[int, TS[OrderRequest]], responses: TSD[str, TSB[OrderHandlerOutputs]],
-        _state: STATE[MapRequestToIdSate] = None) -> TSD[int, TS[OrderResponse]]:
+    requests: TSD[int, TS[OrderRequest]],
+    responses: TSD[str, TSB[OrderHandlerOutputs]],
+    _state: STATE[MapRequestToIdSate] = None,
+) -> TSD[int, TS[OrderResponse]]:
     d = _state.requests
     if requests.modified:
         for key, request in requests.modified_items():
@@ -146,10 +172,10 @@ def _map_response_to_request(
 def _to_tuple(tsb: TSB[OrderHandlerOutput]) -> TSB[OrderHandlerOutputs]:
     out = {}
     if tsb.order_response.modified:
-        out['order_responses'] = (tsb.order_response.value,)
+        out["order_responses"] = (tsb.order_response.value,)
 
     if tsb.order_event.modified:
-        out['order_events'] = (tsb.order_event.value,)
+        out["order_events"] = (tsb.order_event.value,)
 
     return out
 
@@ -175,8 +201,7 @@ class PendingRequests:
 
 @graph
 def _compute_order_state_single(
-        requests: TS[tuple[OrderRequest, ...]],
-        responses: TSB[OrderHandlerOutputs]
+    requests: TS[tuple[OrderRequest, ...]], responses: TSB[OrderHandlerOutputs]
 ) -> TSB[OrderState[SingleLegOrder]]:
     out = __compute_order_state_single(requests, responses)
     confirmed = out.confirmed
@@ -186,17 +211,17 @@ def _compute_order_state_single(
         filled_qty=confirmed.filled_qty,
         filled_notional=confirmed.filled_notional,
         is_filled=confirmed.is_filled,
-        fills=confirmed.fills
+        fills=confirmed.fills,
     )
     return TSB[OrderState[SingleLegOrder]].from_ts(requested=requested, confirmed=confirmed)
 
 
 @compute_node(valid=("requests",))
 def __compute_order_state_single(
-        requests: TS[tuple[OrderRequest, ...]],
-        responses: TSB[OrderHandlerOutputs],
-        _state: STATE[PendingRequests] = None,
-        _output: TSB_OUT[OrderState[ORDER]] = None
+    requests: TS[tuple[OrderRequest, ...]],
+    responses: TSB[OrderHandlerOutputs],
+    _state: STATE[PendingRequests] = None,
+    _output: TSB_OUT[OrderState[ORDER]] = None,
 ) -> TSB[OrderState[SingleLegOrder]]:
     out_confirmed = {}
     out_requested = {}
@@ -207,8 +232,9 @@ def __compute_order_state_single(
         if responses.order_responses.modified:
             order_responses = responses.order_responses.value
             order_responses = {response.version: response for response in order_responses}
-            _state.pending_requests = [request for request in _state.pending_requests if
-                                       request.version not in responses]
+            _state.pending_requests = [
+                request for request in _state.pending_requests if request.version not in responses
+            ]
             # Apply responses to confirmed state
             for response in order_responses.values():
                 confirmed, delta = apply_confirmation(confirmed, response)
@@ -238,11 +264,11 @@ def __compute_order_state_single(
 def apply_event_single_leg(confirmed: dict, event: OrderEvent) -> tuple[dict, dict]:
     out = {}
     if isinstance(event, FillEvent):
-        out['fills'] = event.fill
-        out['filled_qty'] = confirmed['filled_qty'] + event.fill.qty
-        out['remaining_qty'] = (remaining_qty := confirmed['remaining_qty'] - event.fill.qty)
-        out['filled_notional'] = confirmed['filled_notional'] + event.fill.notional
-        out['is_filled'] = bool(remaining_qty.qty <= 0.0)
+        out["fills"] = event.fill
+        out["filled_qty"] = confirmed["filled_qty"] + event.fill.qty
+        out["remaining_qty"] = (remaining_qty := confirmed["remaining_qty"] - event.fill.qty)
+        out["filled_notional"] = confirmed["filled_notional"] + event.fill.notional
+        out["is_filled"] = bool(remaining_qty.qty <= 0.0)
 
     confirmed.update(confirmed)
     return confirmed, out
@@ -291,9 +317,8 @@ def apply_requested_single_leg(requested: dict, request: OrderRequest) -> tuple[
 
 @compute_node
 def _compute_order_state_multi(
-        requests: TS[tuple[OrderRequest, ...]],
-        responses: TSB[OrderHandlerOutputs],
-        _state: STATE[PendingRequests] = None,
-        _output: TSB_OUT[OrderState[ORDER]] = None
-) -> TSB[OrderState[MultiLegOrderType]]:
-    ...
+    requests: TS[tuple[OrderRequest, ...]],
+    responses: TSB[OrderHandlerOutputs],
+    _state: STATE[PendingRequests] = None,
+    _output: TSB_OUT[OrderState[ORDER]] = None,
+) -> TSB[OrderState[MultiLegOrderType]]: ...

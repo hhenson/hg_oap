@@ -18,6 +18,7 @@ class InstrumentId(CompoundScalar):
     Use this to represent an instrument with its identification type, this allows for identification of the symbology
     the id is using. (For example FIGI, FactSet, etc.)
     """
+
     id_: INSTRUMENT_ID
     id_type: str
 
@@ -25,5 +26,3 @@ class InstrumentId(CompoundScalar):
 @dataclass(frozen=True)
 class Instrument(CompoundScalar, ExprClass, UnitConversionContext):
     symbol: INSTRUMENT_ID
-
-

@@ -4,7 +4,7 @@ import operator
 from collections import defaultdict
 from typing import Callable, Union, Sequence, Mapping
 
-__all__ = ('lazy', 'calc', 'ParameterOp', 'Expression')
+__all__ = ("lazy", "calc", "ParameterOp", "Expression")
 
 
 def is_op(obj):
@@ -18,7 +18,10 @@ def make_op(obj):
         return obj.__expression__
     if isinstance(obj, (tuple, list, dict)):
         if len(obj) == 1 and find_op(item := next(iter(obj)), IterOp):
-            return ComprehensionOp(type(obj), item if not isinstance(obj, dict) else KeyValueOp(next(iter(obj.items()))))
+            return ComprehensionOp(
+                type(obj),
+                (item if not isinstance(obj, dict) else KeyValueOp(next(iter(obj.items())))),
+            )
         else:
             return SequenceOp(obj)
 
@@ -46,7 +49,7 @@ class Op:
         raise NotImplementedError()
 
     def __getattr__(self, item: str):
-        if item.startswith('__') and item.endswith('__'):
+        if item.startswith("__") and item.endswith("__"):
             raise AttributeError
 
         return GetattrOp(self, item)
@@ -68,36 +71,32 @@ class Op:
     #         return (self.__wrapped__,)
 
     def __lt__(self, other):
-        o = BinaryOpReversible(6, self, other, operator.lt, '<',
-                               lambda x: x._rhs > x._lhs)
+        o = BinaryOpReversible(6, self, other, operator.lt, "<", lambda x: x._rhs > x._lhs)
 
-        if lhs := getattr(self, '__compared__', None):
+        if lhs := getattr(self, "__compared__", None):
             return ChainCompareOp(self, lhs, o)
         else:
             return o
 
     def __le__(self, other):
-        o = BinaryOpReversible(6, self, other, operator.le, '<=',
-                               lambda x: x._rhs >= x._lhs)
+        o = BinaryOpReversible(6, self, other, operator.le, "<=", lambda x: x._rhs >= x._lhs)
 
-        if lhs := getattr(self, '__compared__', None):
+        if lhs := getattr(self, "__compared__", None):
             return ChainCompareOp(self, lhs, o)
         else:
             return o
 
     def __eq__(self, other):
-        return BinaryOp(6, self, other, operator.eq, '==')
+        return BinaryOp(6, self, other, operator.eq, "==")
 
     def __ne__(self, other):
-        return BinaryOp(6, self, other, operator.ne, '!=')
+        return BinaryOp(6, self, other, operator.ne, "!=")
 
     def __gt__(self, other):
-        return BinaryOpReversible(6, self, other, operator.gt, '>',
-                                  lambda x: x._rhs < x._lhs)
+        return BinaryOpReversible(6, self, other, operator.gt, ">", lambda x: x._rhs < x._lhs)
 
     def __ge__(self, other):
-        return BinaryOpReversible(6, self, other, operator.ge, '>=',
-                                  lambda x: x._rhs <= x._lhs)
+        return BinaryOpReversible(6, self, other, operator.ge, ">=", lambda x: x._rhs <= x._lhs)
 
     def __hash__(self):
         return id(self)
@@ -106,94 +105,94 @@ class Op:
         return FailedOp("Op is not booleanable")
 
     def __add__(self, other):
-        return BinaryOp(11, self, other, operator.add, '+')
+        return BinaryOp(11, self, other, operator.add, "+")
 
     def __sub__(self, other):
-        return BinaryOp(11, self, other, operator.sub, '-')
+        return BinaryOp(11, self, other, operator.sub, "-")
 
     def __mul__(self, other):
-        return BinaryOp(12, self, other, operator.mul, '*')
+        return BinaryOp(12, self, other, operator.mul, "*")
 
     def __truediv__(self, other):
-        return BinaryOp(12, self, other, operator.truediv, '/')
+        return BinaryOp(12, self, other, operator.truediv, "/")
 
     def __floordiv__(self, other):
-        return BinaryOp(12, self, other, operator.floordiv, '//')
+        return BinaryOp(12, self, other, operator.floordiv, "//")
 
     def __mod__(self, other):
-        return BinaryOp(12, self, other, operator.mod, '%')
+        return BinaryOp(12, self, other, operator.mod, "%")
 
     def __divmod__(self, other):
         return BinaryOpSpecial(-1, self, other, divmod, "divmod({}, {})")
 
     def __pow__(self, other, *args):
-        return BinaryOp(14, self, other, operator.pow, '**')
+        return BinaryOp(14, self, other, operator.pow, "**")
 
     def __lshift__(self, other):
-        return BinaryOp(10, self, other, operator.lshift, '<<')
+        return BinaryOp(10, self, other, operator.lshift, "<<")
 
     def __rshift__(self, other):
-        return BinaryOp(10, self, other, operator.rshift, '>>')
+        return BinaryOp(10, self, other, operator.rshift, ">>")
 
     def __and__(self, other):
-        return BinaryOp(9, self, other, operator.and_, '&')
+        return BinaryOp(9, self, other, operator.and_, "&")
 
     def __xor__(self, other):
-        return BinaryOp(8, self, other, operator.xor, '^')
+        return BinaryOp(8, self, other, operator.xor, "^")
 
     def __or__(self, other):
-        return BinaryOp(7, self, other, operator.or_, '|')
+        return BinaryOp(7, self, other, operator.or_, "|")
 
     def __radd__(self, other):
-        return BinaryOp(11, other, self, operator.add, '+')
+        return BinaryOp(11, other, self, operator.add, "+")
 
     def __rsub__(self, other):
-        return BinaryOp(11, other, self, operator.sub, '-')
+        return BinaryOp(11, other, self, operator.sub, "-")
 
     def __rmul__(self, other):
-        return BinaryOp(12, other, self, operator.mul, '*')
+        return BinaryOp(12, other, self, operator.mul, "*")
 
     def __rtruediv__(self, other):
-        return BinaryOp(12, other, self, operator.truediv, '/')
+        return BinaryOp(12, other, self, operator.truediv, "/")
 
     def __rfloordiv__(self, other):
-        return BinaryOp(12, other, self, operator.floordiv, '//')
+        return BinaryOp(12, other, self, operator.floordiv, "//")
 
     def __rmod__(self, other):
-        return BinaryOp(12, other, self, operator.mod, '%')
+        return BinaryOp(12, other, self, operator.mod, "%")
 
     def __rdivmod__(self, other):
         return BinaryOpSpecial(-1, other, self, divmod, "divmod({}, {})")
 
     def __rpow__(self, other, *args):
-        return BinaryOp(14, other, self, operator.pow, '**')
+        return BinaryOp(14, other, self, operator.pow, "**")
 
     def __rlshift__(self, other):
-        return BinaryOp(10, other, self, operator.lshift, '<<')
+        return BinaryOp(10, other, self, operator.lshift, "<<")
 
     def __rrshift__(self, other):
-        return BinaryOp(10, other, self, operator.rshift, '>>')
+        return BinaryOp(10, other, self, operator.rshift, ">>")
 
     def __rand__(self, other):
-        return BinaryOp(9, other, self, operator.and_, '&')
+        return BinaryOp(9, other, self, operator.and_, "&")
 
     def __rxor__(self, other):
-        return BinaryOp(8, other, self, operator.xor, '^')
+        return BinaryOp(8, other, self, operator.xor, "^")
 
     def __ror__(self, other):
-        return BinaryOp(7, other, self, operator.or_, '|')
+        return BinaryOp(7, other, self, operator.or_, "|")
 
     def __neg__(self):
-        return UnaryOp(13, self, operator.neg, '-{}')
+        return UnaryOp(13, self, operator.neg, "-{}")
 
     def __pos__(self):
-        return UnaryOp(13, self, operator.pos, '+{}')
+        return UnaryOp(13, self, operator.pos, "+{}")
 
     def __abs__(self):
-        return UnaryOp(20, self, operator.abs, 'abs{}')
+        return UnaryOp(20, self, operator.abs, "abs{}")
 
     def __invert__(self):
-        return UnaryOp(13, self, operator.invert, '~{}')
+        return UnaryOp(13, self, operator.invert, "~{}")
 
     # def __contains__(self, value):  # converts any non-False return to True
     #     return BinaryOp(6, self, value, operator.contains, '{1} in {0}')
@@ -336,7 +335,8 @@ class BinaryOp(Op):
 
     def __visit_operands__(self, fn):
         r, c = fn(self._lhs)
-        if not c: return r
+        if not c:
+            return r
         r, c = fn(self._rhs)
         return r
 
@@ -370,8 +370,14 @@ class BinaryOpReversible(BinaryOp):
         return FailedOp("__bool__ is not supported on Op")
 
     def __transform__(self, fn=lambda x: x, new_class=None):
-        return (new_class or self.__class__)(self._priority, fn(self._lhs), fn(self._rhs), self._op, self._format,
-                                             self._reversed)
+        return (new_class or self.__class__)(
+            self._priority,
+            fn(self._lhs),
+            fn(self._rhs),
+            self._op,
+            self._format,
+            self._reversed,
+        )
 
     def __clear__compared___(self):
         del self._lhs.__compared__
@@ -383,7 +389,7 @@ class ChainCompareOp(Op):
         super().__init__(_priority=6)
         _lhs.__clear__compared___()
         self._obj = _obj
-        self._parameter = ParameterOp(_name='chain_op_parameter' + str(id(self)))
+        self._parameter = ParameterOp(_name="chain_op_parameter" + str(id(self)))
         self._lhs = _lhs.__transform__(lambda x: self._parameter if self._obj is x else x)
         self._rhs = _rhs.__transform__(lambda x: self._parameter if self._obj is x else x)
 
@@ -409,9 +415,11 @@ class ChainCompareOp(Op):
 
     def __visit_operands__(self, fn):
         r, c = fn(self._obj)
-        if not c: return r
+        if not c:
+            return r
         r, c = fn(self._lhs)
-        if not c: return r
+        if not c:
+            return r
         r, c = fn(self._rhs)
         return r
 
@@ -443,6 +451,7 @@ class GetitemOp(BinaryOpSpecial):
     def __transform__(self, fn=lambda x: x, new_class=None):
         return (new_class or self.__class__)(fn(self._lhs), fn(self._rhs))
 
+
 class CallOp(Op):
     def __init__(self, fn, args, kwargs):
         super().__init__(_priority=16)
@@ -451,10 +460,12 @@ class CallOp(Op):
         self._kwargs = kwargs
 
     def __repr__(self):
-        args = ', '.join(
+        args = ", ".join(
             itertools.chain(
                 (repr(a) for a in self._args),
-                (f'{k}={v}' for k, v in self._kwargs.items())))
+                (f"{k}={v}" for k, v in self._kwargs.items()),
+            )
+        )
 
         return f"{repr_inner(self, self._fn)}({args})"
 
@@ -484,18 +495,24 @@ class CallOp(Op):
 
     def __visit_operands__(self, fn):
         r, c = fn(self._fn)
-        if not c: return r
+        if not c:
+            return r
         for a in self._args:
             r, c = fn(a)
-            if not c: return r
+            if not c:
+                return r
         for _, a in self._kwargs:
             r, c = fn(a)
-            if not c: return r
+            if not c:
+                return r
         return r
 
     def __transform__(self, fn=lambda x: x, new_class=None):
-        return (new_class or self.__class__)(fn(self._fn), tuple(fn(a) for a in self._args),
-                                             {k: fn(v) for k, v in self._kwargs.items()})
+        return (new_class or self.__class__)(
+            fn(self._fn),
+            tuple(fn(a) for a in self._args),
+            {k: fn(v) for k, v in self._kwargs.items()},
+        )
 
 
 class IterOp(Op):
@@ -578,12 +595,14 @@ class ParameterOp(Op):
             return kwargs[self._name]
         elif self._index is not None and len(args) > self._index:
             return args[self._index]
-        elif '__partial__' in kwargs:
+        elif "__partial__" in kwargs:
             return self
         else:
-            return FailedOp(f"missing argument with {'name ' + self._name if self._name else ''}"
-                            f"{' or ' if self._name and self._index is not None else ''}"
-                            f"{'index ' + str(self._index) if self._index is not None else ''}")
+            return FailedOp(
+                f"missing argument with {'name ' + self._name if self._name else ''}"
+                f"{' or ' if self._name and self._index is not None else ''}"
+                f"{'index ' + str(self._index) if self._index is not None else ''}"
+            )
 
     def __visit_operands__(self, fn):
         return None
@@ -596,12 +615,11 @@ class SequenceOp(Op):
     def __init__(self, _items):
         super().__init__(_priority=17)
         self._tp = type(_items)
-        self._items = [make_op(a) for a in _items] if self._tp is not dict \
-            else [KeyValueOp(i) for i in _items.items()]
+        self._items = [make_op(a) for a in _items] if self._tp is not dict else [KeyValueOp(i) for i in _items.items()]
 
     def __repr__(self):
         f = "({})" if self._tp is tuple else "[{}]" if self._tp is list else "{{{}}}"
-        return f.format(', '.join(repr(i) for i in self._items))
+        return f.format(", ".join(repr(i) for i in self._items))
 
     def __invoke__(self, *args, **kwargs):
         items = []
@@ -650,8 +668,15 @@ class ComprehensionOp(Op):
         layers, iterators = find_iterators(self._item, tp=IterOp)
         iterators = {it: ParameterOp(_name="ijklmn"[i]) for i, it in enumerate(iterators)}
         item = replace(self._item, iterators)
-        f = "{{{} {}}}" if self._tp is dict and isinstance(self._item, KeyValueOp) else "[{} {}]" if self._tp is list else "tuple({})"
-        return f.format(repr(item), ' '.join(f"for {iterators[i]._name} in {repr(i)}" for i in iterators))
+        f = (
+            "{{{} {}}}"
+            if self._tp is dict and isinstance(self._item, KeyValueOp)
+            else "[{} {}]" if self._tp is list else "tuple({})"
+        )
+        return f.format(
+            repr(item),
+            " ".join(f"for {iterators[i]._name} in {repr(i)}" for i in iterators),
+        )
 
     def __invoke__(self, *args, **kwargs):
         return self._tp(i for i in self._generate(self._item, *args, **kwargs))
@@ -668,14 +693,17 @@ class ComprehensionOp(Op):
         layers, iterators = find_iterators(expr, tp=IterOp)
         assert len(iterators) <= 6, "Comprehensions with more than 6 iterators are not supported"
         iterators = {it: ParameterOp(_name="ijklmn"[i]) for i, it in enumerate(iterators)}
-        replacer = lambda x: y if ((y := iterators.get(x, None) if isinstance(x, Op) else x) is not None
-                                   ) else x.__transform__(replacer)
+        replacer = lambda x: (
+            y if ((y := iterators.get(x, None) if isinstance(x, Op) else x) is not None) else x.__transform__(replacer)
+        )
         expr = replacer(expr)
 
         def gen(remaining_layers):
             ti = {iterators[i]._name: i.__transform__(replacer) for i in remaining_layers[0]}
-            ti = {n: i.__invoke__(*args, **kwargs, **{it._name: it for it in iterators.values()}) for n, i in ti.items()}
-            for values in (gen(remaining_layers[1:]) if len(remaining_layers) > 1 else [{}]):
+            ti = {
+                n: i.__invoke__(*args, **kwargs, **{it._name: it for it in iterators.values()}) for n, i in ti.items()
+            }
+            for values in gen(remaining_layers[1:]) if len(remaining_layers) > 1 else [{}]:
                 for k, v in ti.items():
                     v.__invoke__(**values)
                 for vals in itertools.product(*ti.values()):
@@ -755,8 +783,7 @@ def find_parameters(op, tp=ParameterOp):
 
 def replace(op, mapping):
     def replacer(x):
-        return y if ((y := mapping.get(x, None) if isinstance(x, Op) else x) is not None
-                     ) else x.__transform__(replacer)
+        return y if ((y := mapping.get(x, None) if isinstance(x, Op) else x) is not None) else x.__transform__(replacer)
 
     return replacer(op)
 
@@ -788,7 +815,7 @@ class Expression:
             if p._name is not None and p._index is not None:
                 i_parameters[p._index] = inspect.Parameter(p._name, inspect.Parameter.POSITIONAL_OR_KEYWORD)
             elif p._index is not None:
-                i_parameters[p._index] = inspect.Parameter(f'i{p._index}', inspect.Parameter.POSITIONAL_OR_KEYWORD)
+                i_parameters[p._index] = inspect.Parameter(f"i{p._index}", inspect.Parameter.POSITIONAL_OR_KEYWORD)
             elif p._name is not None:
                 kw_parameters.append(inspect.Parameter(p._name, inspect.Parameter.KEYWORD_ONLY))
 
@@ -798,13 +825,14 @@ class Expression:
             if i in i_parameters:
                 parametes.append(i_parameters[i])
             else:
-                parametes.append(inspect.Parameter(f'i{i}', inspect.Parameter.POSITIONAL_OR_KEYWORD))
+                parametes.append(inspect.Parameter(f"i{i}", inspect.Parameter.POSITIONAL_OR_KEYWORD))
 
         parametes.extend(kw_parameters)
         return inspect.Signature(parametes)
 
     def __class_getitem__(cls, params):
         from typing import _SpecialGenericAlias
+
         args, result = params
         if isinstance(args, list):
             params = tuple(args) + (result,)

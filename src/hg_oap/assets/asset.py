@@ -13,6 +13,7 @@ class Asset(CompoundScalar, ExprClass, UnitConversionContext):
     A thing of value that can be held.
     Assets are not instruments (i.e. cannot be traded directly), but can be used in instruments as underlyers.
     """
+
     symbol: str
 
 
@@ -26,6 +27,7 @@ class PhysicalAsset(Asset):
     The unit conversion factors can be used to convert between units of different dimensions -
     e.g. density for mass/volume
     """
+
     name: str
     default_unit: Unit = None  # TODO - add a Unit.null?
     unit_conversion_factors: tuple[Quantity[float]] = ()

@@ -10,5 +10,6 @@ class Forward(Instrument):
     """
     Like a Future, but traded as OTC instruments. These can be customised as needed. Forwards operate on assets.
     """
+
     tenor: Tenor
     underlyer: Asset

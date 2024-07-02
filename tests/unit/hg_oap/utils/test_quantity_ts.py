@@ -17,7 +17,11 @@ def test_quantity_ts():
         v = combine[TS[Quantity[float]]](qty=ts, unit=u)
         return convert(v, u1)
 
-    assert eval_node(g, ts=[1., None, 2.], u=[U.kg, None, None], u1=[None, U.kg, U.g]) == [None, 1.*U.kg, 2000.*U.g]
+    assert eval_node(g, ts=[1.0, None, 2.0], u=[U.kg, None, None], u1=[None, U.kg, U.g]) == [
+        None,
+        1.0 * U.kg,
+        2000.0 * U.g,
+    ]
 
 
 def test_quantity_tsb():
@@ -27,15 +31,19 @@ def test_quantity_tsb():
         v = TSB[Quantity[float]].from_ts(qty=ts, unit=u)
         return convert_units(v, u1).as_scalar_ts()
 
-    assert eval_node(g, ts=[1.0, None, 2.0], u=[U.kg, None, None], u1=[None, U.kg, U.g]) == [None, 1.*U.kg, 2000.*U.g]
+    assert eval_node(g, ts=[1.0, None, 2.0], u=[U.kg, None, None], u1=[None, U.kg, U.g]) == [
+        None,
+        1.0 * U.kg,
+        2000.0 * U.g,
+    ]
 
-    assert eval_node(g,
-                     ts=[274.15, None, 273.15, None],
-                     u=[U.K, None, None, None],
-                     u1=[U.K, U.degC, U.degF, U.K],
-                     #__trace__=True
-                     ) == \
-    [274.15*U.K, 1.*U.degC, 32.*U.degF, 273.15*U.K]
+    assert eval_node(
+        g,
+        ts=[274.15, None, 273.15, None],
+        u=[U.K, None, None, None],
+        u1=[U.K, U.degC, U.degF, U.K],
+        # __trace__=True
+    ) == [274.15 * U.K, 1.0 * U.degC, 32.0 * U.degF, 273.15 * U.K]
 
 
 def test_mwh_to_therm():
@@ -48,5 +56,4 @@ def test_mwh_to_therm():
         v = combine[TS[Quantity[float]]](qty=ts, unit=u)
         return convert(v, u1)
 
-    assert eval_node(g, ts=[1.0], u=[U.MWh], u1=[U.therm]) == [34.12141633127942*U.therm]
-
+    assert eval_node(g, ts=[1.0], u=[U.MWh], u1=[U.therm]) == [34.12141633127942 * U.therm]

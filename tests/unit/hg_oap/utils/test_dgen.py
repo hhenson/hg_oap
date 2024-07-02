@@ -89,11 +89,7 @@ def test_date_generator():
     c = make_dgen(["2024-01-01", "2024-01-02"])[1]
     assert tuple(d for d in c()) == (date(2024, 1, 2),)
 
-    c = (
-        "2024-01-15"
-        < make_dgen(["2024-01-01", "2024-02-01", "2024-03-01", "2024-04-01"])
-        < "2024-03-15"
-    )
+    c = "2024-01-15" < make_dgen(["2024-01-01", "2024-02-01", "2024-03-01", "2024-04-01"]) < "2024-03-15"
     assert tuple(d for d in c()) == (date(2024, 2, 1), date(2024, 3, 1))
 
     c = "2024-01-01" < days <= "2024-01-05"
@@ -150,23 +146,17 @@ def test_date_generator():
 
     c = "2024-01-01" <= weekdays <= "2024-01-31"
     assert tuple(d for d in c()) == tuple(
-        d
-        for d in (date(2024, 1, 1) + timedelta(days=i) for i in range(31))
-        if d.weekday() < 5
+        d for d in (date(2024, 1, 1) + timedelta(days=i) for i in range(31)) if d.weekday() < 5
     )
 
     c = "2024-01-01" <= weekends <= "2024-01-31"
     assert tuple(d for d in c()) == tuple(
-        d
-        for d in (date(2024, 1, 1) + timedelta(days=i) for i in range(31))
-        if d.weekday() >= 5
+        d for d in (date(2024, 1, 1) + timedelta(days=i) for i in range(31)) if d.weekday() >= 5
     )
 
     c = "2024-01-01" <= business_days.over(WeekendCalendar()) <= "2024-01-31"
     assert tuple(d for d in c()) == tuple(
-        d
-        for d in (date(2024, 1, 1) + timedelta(days=i) for i in range(31))
-        if d.weekday() < 5
+        d for d in (date(2024, 1, 1) + timedelta(days=i) for i in range(31)) if d.weekday() < 5
     )
 
     c = "2024-01-03" <= weeks.fri | "2024-01-15" <= "2024-02-01"
@@ -203,11 +193,7 @@ def test_date_generator():
         date(2024, 1, 26),
     )
 
-    c = (
-        "2024-01-03"
-        <= (date(2024, 1, 5), date(2024, 1, 12), date(2024, 1, 15)) - weeks.fri[1]
-        <= "2024-02-01"
-    )
+    c = "2024-01-03" <= (date(2024, 1, 5), date(2024, 1, 12), date(2024, 1, 15)) - weeks.fri[1] <= "2024-02-01"
     assert tuple(d for d in c()) == (date(2024, 1, 5), date(2024, 1, 15))
 
     c = "2024-01-03" <= months <= "2024-04-01"
@@ -254,9 +240,7 @@ def test_date_generator():
 
     c = "2024-01-03" <= months.weekends <= "2024-02-03"
     assert tuple(d for d in c()) == tuple(
-        d
-        for d in (date(2024, 1, 3) + timedelta(days=i) for i in range(32))
-        if d.weekday() >= 5
+        d for d in (date(2024, 1, 3) + timedelta(days=i) for i in range(32)) if d.weekday() >= 5
     )
 
     c = "2020-01-03" <= years <= "2024-01-03"
@@ -276,24 +260,16 @@ def test_date_generator():
     )
 
     c = "2020-01-03" <= years.months < "2024-12-31"
-    assert tuple(d for d in c()) == tuple(
-        d for d in ("2020-01-03" <= months < "2024-12-31")()
-    )
+    assert tuple(d for d in c()) == tuple(d for d in ("2020-01-03" <= months < "2024-12-31")())
 
     c = "2020-01-03" <= years.months[0:3] < "2024-12-31"
-    assert tuple(d for d in c()) == tuple(
-        d for d in ("2020-01-03" <= months < "2024-12-31")() if d.month <= 3
-    )
+    assert tuple(d for d in c()) == tuple(d for d in ("2020-01-03" <= months < "2024-12-31")() if d.month <= 3)
 
     c = "2020-01-03" <= years.months.weeks < "2024-12-31"
-    assert tuple(d for d in c()) == tuple(
-        d for d in ("2020-01-03" <= weeks < "2024-12-31")()
-    )
+    assert tuple(d for d in c()) == tuple(d for d in ("2020-01-03" <= weeks < "2024-12-31")())
 
     c = "2020-01-03" <= years.months.weeks.fri < "2024-12-31"
-    assert tuple(d for d in c()) == tuple(
-        d for d in ("2020-01-03" <= weeks.fri < "2024-12-31")()
-    )
+    assert tuple(d for d in c()) == tuple(d for d in ("2020-01-03" <= weeks.fri < "2024-12-31")())
 
     # not these are not third Fridays of Aprils, but Fridays on the third week that starts in April
     c = "2020-01-03" <= years.apr.weeks[2].fri < "2023-12-31"
@@ -313,9 +289,7 @@ def test_date_generator():
         date(2023, 4, 21),
     )
 
-    calendar = HolidayCalendar(
-        holidays.country_holidays("GB", "ENG")["2020-01-03":"2023-12-31"]
-    )
+    calendar = HolidayCalendar(holidays.country_holidays("GB", "ENG")["2020-01-03":"2023-12-31"])
 
     c = "2020-01-03" <= roll_fwd(years.apr.fri[2], calendar) < "2023-12-31"
     assert tuple(d for d in c()) == (
@@ -375,9 +349,7 @@ def test_date_expressions():
     ]
 
     c = months.fri[_0]
-    assert list(Expression(c)(1)(after="2020-01-01", before="2020-02-01")) == [
-        date(2020, 1, 10)
-    ]
+    assert list(Expression(c)(1)(after="2020-01-01", before="2020-02-01")) == [date(2020, 1, 10)]
 
 
 def test_dgen_parameter():
@@ -395,31 +367,48 @@ def test_dgen_parameter():
 
 
 def test_weekdays_in_month():
-    c = '2024-01-01' <= months.weekdays < '2024-01-31'
+    c = "2024-01-01" <= months.weekdays < "2024-01-31"
     assert len(list((c()))) == 22
 
 
 def test_roll_fwd():
     calendar = HolidayCalendar(holidays=(date(2023, 5, 1), date(2024, 1, 1)))
-    days = '2023-04-28' <= years.days <= '2023-05-02'
-    assert list(roll_fwd(days, calendar)()) == [date(2023, 4, 28), date(2023, 5, 2), date(2023, 5, 2), date(2023, 5, 2), date(2023, 5, 2)]
+    days = "2023-04-28" <= years.days <= "2023-05-02"
+    assert list(roll_fwd(days, calendar)()) == [
+        date(2023, 4, 28),
+        date(2023, 5, 2),
+        date(2023, 5, 2),
+        date(2023, 5, 2),
+        date(2023, 5, 2),
+    ]
 
-    days = '2023-12-29' <= years.days <= '2024-01-02'
-    assert list(roll_fwd(days, calendar)()) == [date(2023, 12, 29), date(2024, 1, 2), date(2024, 1, 2), date(2024, 1, 2), date(2024, 1, 2)]
+    days = "2023-12-29" <= years.days <= "2024-01-02"
+    assert list(roll_fwd(days, calendar)()) == [
+        date(2023, 12, 29),
+        date(2024, 1, 2),
+        date(2024, 1, 2),
+        date(2024, 1, 2),
+        date(2024, 1, 2),
+    ]
 
 
 def test_roll_bwd():
     calendar = WeekendCalendar()
-    days = '2024-06-21' <= years.days <= '2024-06-24'  # Fri to Mon
-    assert list(roll_bwd(days, calendar)()) == [date(2024, 6, 21), date(2024, 6, 21), date(2024, 6, 21), date(2024, 6, 24)]
+    days = "2024-06-21" <= years.days <= "2024-06-24"  # Fri to Mon
+    assert list(roll_bwd(days, calendar)()) == [
+        date(2024, 6, 21),
+        date(2024, 6, 21),
+        date(2024, 6, 21),
+        date(2024, 6, 24),
+    ]
 
 
 def test_quarters():
-    qs = '2024-02-01' < quarters < '2024-11-02'
+    qs = "2024-02-01" < quarters < "2024-11-02"
     assert list(qs()) == [date(2024, 4, 1), date(2024, 7, 1), date(2024, 10, 1)]
 
-    days = '2024-01-01' <= quarters.days <= '2025-01-01'
+    days = "2024-01-01" <= quarters.days <= "2025-01-01"
     assert len(list(days())) == 367
 
-    m = '2024-01-01' <= quarters.months <= '2025-01-01'
+    m = "2024-01-01" <= quarters.months <= "2025-01-01"
     assert len(list(m())) == 13

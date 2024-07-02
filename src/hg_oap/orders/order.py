@@ -8,8 +8,16 @@ from hg_oap.pricing.price import Price
 from hg_oap.units.quantity import Quantity
 
 __all__ = (
-    'ORDER', 'LEG_ID', 'OriginatorInfo', 'Fill', 'Order', 'SingleLegOrder', 'MultiLegOrder', 'OrderState',
-    'order_states')
+    "ORDER",
+    "LEG_ID",
+    "OriginatorInfo",
+    "Fill",
+    "Order",
+    "SingleLegOrder",
+    "MultiLegOrder",
+    "OrderState",
+    "order_states",
+)
 
 
 @dataclass
@@ -33,6 +41,7 @@ class Fill(CompoundScalar):
     The qty represents how much was filled and the notional the total value of the fill,
     thus fill price is notional / qty.
     """
+
     fill_id: str
     qty: Quantity[float]
     notional: Price
@@ -44,6 +53,7 @@ class Order(TimeSeriesSchema):
     """
     The base order class schema.
     """
+
     order_id: TS[str]
     order_version: TS[int]
     last_updated_by: TS[str]  # The client id who last updated the order
@@ -61,6 +71,7 @@ class SingleLegOrder(Order):
     The ``fills`` time-series represent the stream of fills received on the order. It does not
     provide the historical state of all received fills.
     """
+
     order_type: TS[SingleLegOrderType]
     remaining_qty: TSB[Quantity[float]]
     filled_qty: TSB[Quantity[float]]
@@ -78,6 +89,7 @@ class MultiLegOrder(Order):
     Orders that operate over multiple legs. These orders operate over multiple single leg order types.
     Examples include IfDone, OneCancelOther, etc.
     """
+
     order_type: TS[MultiLegOrderType]
     remaining_qty: TSD[LEG_ID, TSB[Quantity[float]]]
     filled_qty: TSD[LEG_ID, TSB[Quantity[float]]]
@@ -100,6 +112,7 @@ class OrderState(TimeSeriesSchema, Generic[ORDER]):
     The requested state is effectively the confirmed state plus the
     effect of the pending requests.
     """
+
     requested: TSB[ORDER]
     confirmed: TSB[ORDER]
 

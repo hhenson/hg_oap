@@ -16,4 +16,3 @@ class CashInstruments(Enum):
     GBX = Cash("GBX", currency=Currencies.GBX)
     USD = Cash("USD", currency=Currencies.USD)
     USX = Cash("USX", currency=Currencies.USX)
-

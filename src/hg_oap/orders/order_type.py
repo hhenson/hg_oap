@@ -19,7 +19,7 @@ __all__ = (
     "IfDone",
     "OneCancelOther",
     "IfDoneOneCancelOther",
-    "is_order_type"
+    "is_order_type",
 )
 
 
@@ -51,7 +51,7 @@ class MarketOrderType(SingleLegOrderType):
 
 @dataclass(frozen=True)
 class MultiLegOrderType(OrderType):
-    """ Marker class for orders with multiple legs"""
+    """Marker class for orders with multiple legs"""
 
     @property
     def leg_ids(self) -> tuple[str, ...]:
@@ -64,6 +64,7 @@ class IfDone(MultiLegOrderType, Generic[SINGLE_LEG_ORDER_TYPE_1, SINGLE_LEG_ORDE
     """
     The 'if_' leg is processed first, if the 'if_' completed, the 'done' leg is then placed.
     """
+
     if_: SINGLE_LEG_ORDER_TYPE_1
     done: SINGLE_LEG_ORDER_TYPE_2
 
@@ -79,6 +80,7 @@ class OneCancelOther(MultiLegOrderType, Generic[SINGLE_LEG_ORDER_TYPE_1, SINGLE_
 
     This order type runs the risk of overfilling, so it is useful to present orders with the expectation of overfill.
     """
+
     one: SINGLE_LEG_ORDER_TYPE_1
     other: SINGLE_LEG_ORDER_TYPE_2
 
@@ -89,6 +91,7 @@ class IfDoneOneCancelOther(MultiLegOrderType, Generic[SINGLE_LEG_ORDER_TYPE_1, S
     As with IfDone, the 'if_' is processed first, one completion, the 'done_one' and 'done_other' are placed using the
     logic of OneCancelOther.
     """
+
     if_: SINGLE_LEG_ORDER_TYPE_1
     done_one: SINGLE_LEG_ORDER_TYPE_1
     done_other: SINGLE_LEG_ORDER_TYPE_2
@@ -103,5 +106,3 @@ def is_order_type(v: Any) -> bool:
             return (b := cast(TypeVar, v.py_type).__bound__) and issubclass(b, OrderType)
     else:
         return isinstance(v, OrderType)
-
-

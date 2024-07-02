@@ -2,7 +2,20 @@ from typing import Type
 
 from hg_oap.units import Unit, Quantity, UnitConversionContext
 from hg_oap.units.unit import NUMBER
-from hgraph import graph, TS, AUTO_RESOLVE, TSL, TSB, compute_node, CONTEXT, operator, index_of, filter_, valid, if_
+from hgraph import (
+    graph,
+    TS,
+    AUTO_RESOLVE,
+    TSL,
+    TSB,
+    compute_node,
+    CONTEXT,
+    operator,
+    index_of,
+    filter_,
+    valid,
+    if_,
+)
 
 
 @operator
@@ -31,7 +44,11 @@ def convert_units_default(qty: TS[NUMBER], fr: TS[Unit], to: TS[Unit], tp: Type[
     ratio_converted = ratio_convert * ratio
     offset_converted = _convert_units(offset_convert, fr, to)
     return TSL.from_ts(pass_through, ratio_converted, offset_converted)[
-        index_of(TSL.from_ts(valid(pass_through), valid(ratio_converted), valid(offset_converted)), True)]
+        index_of(
+            TSL.from_ts(valid(pass_through), valid(ratio_converted), valid(offset_converted)),
+            True,
+        )
+    ]
 
 
 @graph(overloads=convert_units)
@@ -45,11 +62,21 @@ def has_conversion_ratio(fr: TS[Unit], to: TS[Unit]) -> TS[bool]:
 
 
 @compute_node
-def conversion_ratio(fr: TS[Unit], to: TS[Unit], tp: Type[NUMBER] = AUTO_RESOLVE, context: CONTEXT[UnitConversionContext] = None) -> TS[NUMBER]:
+def conversion_ratio(
+    fr: TS[Unit],
+    to: TS[Unit],
+    tp: Type[NUMBER] = AUTO_RESOLVE,
+    context: CONTEXT[UnitConversionContext] = None,
+) -> TS[NUMBER]:
     if fr.value._is_multiplicative and to.value._is_multiplicative:
-        return fr.value.convert(tp(1.), to=to.value)
+        return fr.value.convert(tp(1.0), to=to.value)
 
 
 @compute_node
-def _convert_units(qty: TS[NUMBER], fr: TS[Unit], to: TS[Unit], context: CONTEXT[UnitConversionContext] = None) -> TS[NUMBER]:
+def _convert_units(
+    qty: TS[NUMBER],
+    fr: TS[Unit],
+    to: TS[Unit],
+    context: CONTEXT[UnitConversionContext] = None,
+) -> TS[NUMBER]:
     return fr.value.convert(qty.value, to=to.value)

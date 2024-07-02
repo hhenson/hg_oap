@@ -1,5 +1,5 @@
 from hg_oap.utils.op import ParameterOp
 
-__all__ = ('SELF',)
+__all__ = ("SELF",)
 
-SELF = ParameterOp(0, _name='SELF')
+SELF = ParameterOp(0, _name="SELF")

@@ -5,7 +5,13 @@ from typing import Tuple
 from hg_oap.units.unit_system import UnitSystem
 from hg_oap.utils.exprclass import ExprClass
 
-__all__ = ("Dimension", "Dimensionless", "PrimaryDimension", "DerivedDimension", "QualifiedDimension")
+__all__ = (
+    "Dimension",
+    "Dimensionless",
+    "PrimaryDimension",
+    "DerivedDimension",
+    "QualifiedDimension",
+)
 
 
 @dataclass(frozen=True, kw_only=True, init=False)
@@ -13,7 +19,7 @@ class Dimension(ExprClass):
     name: str = None
 
     def __new__(cls, name=None):
-        assert cls is not Dimension, 'Base Dimension types is not instantiable.'
+        assert cls is not Dimension, "Base Dimension types is not instantiable."
 
         if name:
             if d := UnitSystem.instance().__dimensions__.get(name):
@@ -21,7 +27,7 @@ class Dimension(ExprClass):
 
         n = super().__new__(cls)
         if name:
-            object.__setattr__(n, 'name', name)
+            object.__setattr__(n, "name", name)
             UnitSystem.instance().__dimensions__[name] = n
 
         return n
@@ -69,14 +75,14 @@ class Dimension(ExprClass):
 
 @dataclass(frozen=True)
 class Dimensionless(Dimension):
-    name: str = 'dimensionless'
+    name: str = "dimensionless"
 
     def __new__(cls):
-        if d := UnitSystem.instance().__dimensions__.get('dimensionless'):
+        if d := UnitSystem.instance().__dimensions__.get("dimensionless"):
             return d
 
-        n = super().__new__(cls, name='dimensionless')
-        UnitSystem.instance().__dimensions__['dimensionless'] = n
+        n = super().__new__(cls, name="dimensionless")
+        UnitSystem.instance().__dimensions__["dimensionless"] = n
         return n
 
     def __hash__(self):
@@ -126,16 +132,16 @@ class DerivedDimension(Dimension):
             return d
 
         n = super().__new__(cls)
-        object.__setattr__(n, 'components', reduced_components)
+        object.__setattr__(n, "components", reduced_components)
         if name:
             type(n).name.__override__(n, name)
         UnitSystem.instance().__derived_dimensions__[reduced_components] = n
         return n
 
     def _build_name(self):
-        up = '*'.join(f"{d}**{p}" if p != 1 else str(d) for d, p in self.components if p > 0) or '1'
-        dn = ('*'.join(f"{d}**{abs(p)}" if p != -1 else str(d) for d, p in self.components if p < 0))
-        dn = ('/' + dn) if dn else ''
+        up = "*".join(f"{d}**{p}" if p != 1 else str(d) for d, p in self.components if p > 0) or "1"
+        dn = "*".join(f"{d}**{abs(p)}" if p != -1 else str(d) for d, p in self.components if p < 0)
+        dn = ("/" + dn) if dn else ""
         return f"{up}{dn}"
 
     def __hash__(self):
@@ -145,7 +151,7 @@ class DerivedDimension(Dimension):
         if power == 1:
             return self.components
         else:
-            return tuple((c, p*power) for c, p in self.components)
+            return tuple((c, p * power) for c, p in self.components)
 
 
 @dataclass(frozen=True)
@@ -161,9 +167,9 @@ class QualifiedDimension(Dimension):
             return d
 
         n = super().__new__(cls, name=qualified_name)
-        object.__setattr__(n, 'name', qualified_name)
-        object.__setattr__(n, 'base', base)
-        object.__setattr__(n, 'qualifier', qualifier)
+        object.__setattr__(n, "name", qualified_name)
+        object.__setattr__(n, "base", base)
+        object.__setattr__(n, "qualifier", qualifier)
 
         UnitSystem.instance().__dimensions__[qualified_name] = n
 

@@ -63,15 +63,15 @@ class Quantity(CompoundScalar, Generic[NUMBER]):
 
     def __rtruediv__(self, other):
         if isinstance(other, type(self.qty)):
-            return Quantity[type(self.qty)](other / self.qty, self.unit ** -1)
+            return Quantity[type(self.qty)](other / self.qty, self.unit**-1)
         else:
-            return Quantity[type(self.qty)](type(self.qty)(other) / self.qty, self.unit ** -1)
+            return Quantity[type(self.qty)](type(self.qty)(other) / self.qty, self.unit**-1)
 
         return NotImplemented
 
     def __pow__(self, other):
         if isinstance(other, Number):
-            return Quantity[type(self.qty)](self.qty ** other, self.unit ** other)
+            return Quantity[type(self.qty)](self.qty**other, self.unit**other)
 
         return NotImplemented
 

@@ -3,7 +3,7 @@ from bisect import bisect, bisect_left
 from datetime import date, timedelta
 from typing import Tuple, Set
 
-__all__ = ('Calendar', 'WeekendCalendar', 'HolidayCalendar')
+__all__ = ("Calendar", "WeekendCalendar", "HolidayCalendar")
 
 
 class Calendar:
@@ -43,7 +43,8 @@ class WeekendCalendar(Calendar):
 
     @abstractmethod
     def add_business_days(self, d: date, days: int):
-        if days < 0: return self.sub_business_days(d, -days)
+        if days < 0:
+            return self.sub_business_days(d, -days)
 
         w = d.weekday()
         wd = 0
@@ -52,12 +53,13 @@ class WeekendCalendar(Calendar):
         if wd:
             d += timedelta(days=wd)
 
-        if days == 0: return d  # rolled to the next business day
+        if days == 0:
+            return d  # rolled to the next business day
 
         weeks = days // (7 - self._number_weekend_days)
         if weeks:
             d += timedelta(days=7 * weeks)
-            days %= (7 - self._number_weekend_days)
+            days %= 7 - self._number_weekend_days
 
         w = d.weekday() + 1
         wd = days
@@ -72,7 +74,8 @@ class WeekendCalendar(Calendar):
 
     @abstractmethod
     def sub_business_days(self, d: date, days: int):
-        if days < 0: return self.add_business_days(d, -days)
+        if days < 0:
+            return self.add_business_days(d, -days)
 
         w = d.weekday()
         wd = 0
@@ -81,12 +84,13 @@ class WeekendCalendar(Calendar):
         if wd:
             d -= timedelta(days=wd)
 
-        if days == 0: return d  # rolled to the prev business day
+        if days == 0:
+            return d  # rolled to the prev business day
 
         weeks = days // (7 - self._number_weekend_days)
         if weeks:
             d -= timedelta(days=7 * weeks)
-            days %= (7 - self._number_weekend_days)
+            days %= 7 - self._number_weekend_days
 
         w = d.weekday() - 1
         wd = days
@@ -116,7 +120,8 @@ class HolidayCalendar(WeekendCalendar):
         return self.is_holiday(d) or super().is_holiday_or_weekend(d)
 
     def add_business_days(self, d: date, days: int):
-        if days < 0: return self.sub_business_days(d, -days)
+        if days < 0:
+            return self.sub_business_days(d, -days)
 
         i = bisect_left(self._holidays, d)
         while True:
@@ -129,7 +134,8 @@ class HolidayCalendar(WeekendCalendar):
                 i = j
 
     def sub_business_days(self, d: date, days: int):
-        if days < 0: return self.sub_business_days(d, -days)
+        if days < 0:
+            return self.sub_business_days(d, -days)
 
         i = bisect(self._holidays, d)
         while True:

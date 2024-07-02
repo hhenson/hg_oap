@@ -1,8 +1,7 @@
 from hg_oap.assets.currency import Currencies
 from hg_oap.instruments.instrument import Instrument
 from hg_oap.orders.order import OrderState, SingleLegOrder, OriginatorInfo, ORDER, Fill, order_states
-from hg_oap.orders.order_service import order_handler, order_client, \
-    OrderHandlerOutput
+from hg_oap.orders.order_service import order_handler, order_client, OrderHandlerOutput
 from hg_oap.orders.order_request_response_events import OrderRequest, CreateOrderRequest, OrderResponse, OrderEvent
 from hg_oap.orders.order_type import MarketOrderType
 from hg_oap.pricing.price import Price
@@ -14,10 +13,7 @@ from hgraph.test import eval_node
 
 @order_handler
 @graph
-def simple_handler(
-        request: TS[OrderRequest],
-        order_state: TSB[OrderState[SingleLegOrder]]
-) -> TSB[OrderHandlerOutput]:
+def simple_handler(request: TS[OrderRequest], order_state: TSB[OrderState[SingleLegOrder]]) -> TSB[OrderHandlerOutput]:
     """
     Simple example
     """
@@ -44,21 +40,27 @@ def test_simple_handler():
     @graph
     def g(ts: TS[OrderRequest]) -> TS[OrderResponse]:
         register_service("order.simple_handler", simple_handler)
-        order_state = order_states[ORDER: SingleLegOrder]("order.simple_handler")["1"]
+        order_state = order_states[ORDER:SingleLegOrder]("order.simple_handler")["1"]
         debug_print("requested", order_state.requested)
         debug_print("confirmed", order_state.confirmed)
         return order_client("order.simple_handler", ts)
 
     requests = [
         OrderRequest.create_request(
-            CreateOrderRequest, None, 'Howard', order_id="1",
-            order_type=MarketOrderType(instrument=Instrument(symbol="MCU_3M"),
-                                       quantity=Quantity[float](qty=1.0, unit=UnitSystem.instance().lot)),
-            originator_info=OriginatorInfo(account="account")
+            CreateOrderRequest,
+            None,
+            "Howard",
+            order_id="1",
+            order_type=MarketOrderType(
+                instrument=Instrument(symbol="MCU_3M"),
+                quantity=Quantity[float](qty=1.0, unit=UnitSystem.instance().lot),
+            ),
+            originator_info=OriginatorInfo(account="account"),
         )
     ]
     result = eval_node(g, requests)
     assert result == [
-        None, None,
+        None,
+        None,
         OrderResponse.accept(requests[0]),
     ]

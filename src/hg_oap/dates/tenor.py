@@ -2,7 +2,7 @@ import re
 from calendar import monthrange
 from datetime import timedelta, date
 
-__all__ = ('Tenor',)
+__all__ = ("Tenor",)
 
 
 class Tenor:
@@ -10,12 +10,22 @@ class Tenor:
 
     def __init__(self, tenor=None, /, *, y=0, m=0, w=0, d=0, b=0):
         if tenor is not None:
-            assert not any((y, m, w, d, b)), 'cannot specify both a tenor and individual components'
+            assert not any((y, m, w, d, b)), "cannot specify both a tenor and individual components"
 
             if type(tenor) is str:
-                if m := re.match(r"^(-)?(?:(?:(\d+)y)?(?:(\d+)m)?(?:(\d+)w)?(?:(\d+)d)?|(?:(\d+)b)?)$", tenor):
+                if m := re.match(
+                    r"^(-)?(?:(?:(\d+)y)?(?:(\d+)m)?(?:(\d+)w)?(?:(\d+)d)?|(?:(\d+)b)?)$",
+                    tenor,
+                ):
                     sign, y, m, w, d, b = m.groups()
-                    s, y, m, w, d, b = not sign, int(y or 0), int(m or 0), int(w or 0), int(d or 0), int(b or 0)
+                    s, y, m, w, d, b = (
+                        not sign,
+                        int(y or 0),
+                        int(m or 0),
+                        int(w or 0),
+                        int(d or 0),
+                        int(b or 0),
+                    )
                     if sign:
                         y, m, w, d, b = -y, -m, -w, -d, -b
 
@@ -36,10 +46,10 @@ class Tenor:
     def __str__(self):
         s = sum(self.ymwd_b)
         if s == 0:
-            return '0d'
+            return "0d"
 
-        sign = '-' if s < 0 else ''
-        return sign + ''.join(f'{abs(i)}{s}' for i, s in zip(self.ymwd_b, "ymwdb") if i != 0)
+        sign = "-" if s < 0 else ""
+        return sign + "".join(f"{abs(i)}{s}" for i, s in zip(self.ymwd_b, "ymwdb") if i != 0)
 
     def __repr__(self):
         return f'"{str(self)}"'
@@ -65,36 +75,36 @@ class Tenor:
     def __rmul__(self, other):
         return self.__mul__(other)
 
-    def add_to(self, dt, calendar = None):
+    def add_to(self, dt, calendar=None):
         if self.is_neg():
             return self.__neg__().sub_from(dt, calendar)
 
-        if self.ymwd_b[-1] == 0: # not a business days tenor
+        if self.ymwd_b[-1] == 0:  # not a business days tenor
             y, m, w, d, _ = self.ymwd_b
             year, month, day = dt.year, dt.month, dt.day
             year += y + (month + m - 1) // 12
             month = (month + m - 1) % 12 + 1
             if day > (last_day := monthrange(year, month)[1]):
                 day = last_day
-            return date(year, month, day) + timedelta(days=w*7 + d)
+            return date(year, month, day) + timedelta(days=w * 7 + d)
         elif calendar is None:
-            raise ValueError('cannot add business days tenors without a calendar')
+            raise ValueError("cannot add business days tenors without a calendar")
         else:
             return calendar.add_business_days(dt, self.ymwd_b[-1])
 
-    def sub_from(self, dt, calendar = None):
+    def sub_from(self, dt, calendar=None):
         if self.is_neg():
             return self.__neg__().add_to(dt, calendar)
 
-        if self.ymwd_b[-1] == 0: # not a business days tenor
+        if self.ymwd_b[-1] == 0:  # not a business days tenor
             y, m, w, d, _ = self.ymwd_b
             year, month, day = dt.year, dt.month, dt.day
             year -= y - (month - m - 1) // 12
             month = (month - m - 1) % 12 + 1
             if day > (last_day := monthrange(year, month)[1]):
                 day = last_day
-            return date(year, month, day) + timedelta(days=-w*7 - d)
+            return date(year, month, day) + timedelta(days=-w * 7 - d)
         elif calendar is None:
-            raise ValueError('cannot subtract business days tenors without a calendar')
+            raise ValueError("cannot subtract business days tenors without a calendar")
         else:
             return calendar.sub_business_days(dt, self.ymwd_b[-1])

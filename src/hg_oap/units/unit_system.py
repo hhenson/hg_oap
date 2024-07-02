@@ -12,7 +12,7 @@ __all__ = ("UnitSystem", "UnitConversionContext")
 
 @dataclass
 class UnitSystem:
-    __instance__: ClassVar['UnitSystem'] = None
+    __instance__: ClassVar["UnitSystem"] = None
 
     __dimensions__: dict[str, "Dimension"] = field(default_factory=dict)
     __derived_dimensions__: dict[tuple[tuple["Dimension", int], ...], "Dimension"] = field(default_factory=dict)
@@ -28,6 +28,7 @@ class UnitSystem:
     def instance():
         if UnitSystem.__instance__ is None and UnitSystem.__default__ is not None:
             from hg_oap.units import default_unit_system
+
             UnitSystem.__instance__ = U
         return UnitSystem.__instance__
 
@@ -56,26 +57,30 @@ class UnitSystem:
             return
 
         from hg_oap.units.quantity import Quantity
+
         if isinstance(value, Quantity):
             from hg_oap.units.unit import PrimaryUnit, DerivedUnit, ComplexUnit
+
             if isinstance(value.unit, (PrimaryUnit, DerivedUnit)):
                 value = DerivedUnit(value)
             elif isinstance(value.unit, ComplexUnit):
                 value = ComplexUnit(value)
 
         if value.name != key:
-            if (desc := getattr(type(value), 'name', None)) and isinstance(desc, CallableDescriptor):
+            if (desc := getattr(type(value), "name", None)) and isinstance(desc, CallableDescriptor):
                 desc.__override__(value, key)
             else:
-                object.__setattr__(value, 'name', key)
+                object.__setattr__(value, "name", key)
 
             from hg_oap.units.dimension import PrimaryDimension
+
             if isinstance(value, PrimaryDimension):
                 self.__dimensions__[key] = value
 
         object.__setattr__(self, key, value)
 
         from hg_oap.units.unit import Unit
+
         if isinstance(value, Unit) and value.prefixes:
             self.add_prefixes(value, value.prefixes)
 
@@ -111,15 +116,16 @@ class UnitConversionContext:
     def conversion_factor(self, dimension: float) -> "Quantity[float]":
         if (ucf := getattr(self, "_unit_conversion_factors_lookup", None)) is None:
             ucf = UnitConversionContext.make_conversion_factors(self.unit_conversion_factors)
-            object.__setattr__(self, '_unit_conversion_factors_lookup', ucf)
+            object.__setattr__(self, "_unit_conversion_factors_lookup", ucf)
 
         return ucf.get(dimension, None)
 
     @staticmethod
     def make_conversion_factors(factors: Iterable["Quantity[float]"]):
-        combination_factors = [[reduce(operator.mul, j)
-                                for j in combinations(factors, i)] for i in range(2, len(factors) + 1)]
+        combination_factors = [
+            [reduce(operator.mul, j) for j in combinations(factors, i)] for i in range(2, len(factors) + 1)
+        ]
 
-        all_factors = chain(*((f, 1.0/f) for f in chain(factors, chain.from_iterable(combination_factors))))
+        all_factors = chain(*((f, 1.0 / f) for f in chain(factors, chain.from_iterable(combination_factors))))
 
         return {q.unit.dimension: q for q in all_factors}
