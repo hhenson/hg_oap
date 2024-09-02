@@ -265,13 +265,13 @@ test = ["objgraph", "psutil"]
 
 [[package]]
 name = "hgraph"
-version = "0.3.4"
+version = "0.3.9"
 description = "A functional reactive platform used to process time-series streams. Provides support for backtest (simulation) and realtime time-series processing. Using a forward propagation graph with a microtask scheduler for the runtime engine."
 optional = false
 python-versions = ">=3.11"
 files = [
-    {file = "hgraph-0.3.4-py3-none-any.whl", hash = "sha256:45c7e875ef1b013c26059b17ade296fed9cbceea35a02f3c86a7a3cafb1c5de0"},
-    {file = "hgraph-0.3.4.tar.gz", hash = "sha256:aeeefe251c901da643c81850598b9942d8f2048bb6793b5322e3f5baeb2531c7"},
+    {file = "hgraph-0.3.9-py3-none-any.whl", hash = "sha256:079fafeecc0744d3b7e93fc2359567408e0c6e8b96693435f1e0d2ced57d76f6"},
+    {file = "hgraph-0.3.9.tar.gz", hash = "sha256:9a515545957675ba5bd8d818bbe25ae765533fe3f523282becfd06073e9a769c"},
 ]
 
 [package.dependencies]
@@ -285,7 +285,7 @@ sortedcontainers = ">=2.4.0"
 sqlalchemy = "*"
 
 [package.extras]
-web = ["tornado"]
+web = ["requests", "tornado"]
 
 [[package]]
 name = "holidays"
