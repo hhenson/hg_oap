@@ -265,13 +265,13 @@ test = ["objgraph", "psutil"]
 
 [[package]]
 name = "hgraph"
-version = "0.3.15"
+version = "0.3.16"
 description = "A functional reactive platform used to process time-series streams. Provides support for backtest (simulation) and realtime time-series processing. Using a forward propagation graph with a microtask scheduler for the runtime engine."
 optional = false
 python-versions = ">=3.11"
 files = [
-    {file = "hgraph-0.3.15-py3-none-any.whl", hash = "sha256:dbd34f9d5b8ff530427fda4f761754af4d40be09d353e28aef8115e589d891ea"},
-    {file = "hgraph-0.3.15.tar.gz", hash = "sha256:052180604cb216e5d653cd09d094682c05b47126c48da072993868cea2ce11a8"},
+    {file = "hgraph-0.3.16-py3-none-any.whl", hash = "sha256:888464ac11570c4dd605a00da0ec59d6d82591bdb90a7f9f3f13112011283838"},
+    {file = "hgraph-0.3.16.tar.gz", hash = "sha256:c57926d42b488412d38bab37586744a205e5fe5fc8aef62f8c7d2cce0a3fa4a5"},
 ]
 
 [package.dependencies]
@@ -286,7 +286,8 @@ sortedcontainers = ">=2.4.0"
 sqlalchemy = "*"
 
 [package.extras]
-web = ["requests", "tornado"]
+docs = ["sphinx (>=7.4)", "sphinx-autodoc-typehints (>=2.3.0)", "sphinx_rtd_theme (>=2.0.0)", "sphinxcontrib-plantuml (>=0.30)"]
+web = ["perspective-python (<3.0.0)", "requests", "tornado"]
 
 [[package]]
 name = "holidays"
