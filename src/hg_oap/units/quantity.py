@@ -3,7 +3,7 @@ from numbers import Number
 from typing import Generic
 
 from hg_oap.units.unit import Unit, NUMBER
-from hgraph import CompoundScalar, compute_node, div_, TS, mul_, add_, sub_
+from hgraph import CompoundScalar, compute_node, div_, TS, mul_, add_, sub_, DivideByZero
 
 __all__ = ("Quantity",)
 
@@ -122,13 +122,33 @@ class Quantity(CompoundScalar, Generic[NUMBER]):
 
 
 @compute_node(overloads=div_)
-def div_qty(lhs: TS[Quantity], rhs: TS[Quantity]) -> TS[Quantity]:
-    return lhs.value / rhs.value
+def div_qty(lhs: TS[Quantity], rhs: TS[Quantity], divide_by_zero: DivideByZero = DivideByZero.ERROR) -> TS[Quantity]:
+    try:
+        return lhs.value / rhs.value
+    except ZeroDivisionError:
+        if divide_by_zero is DivideByZero.NAN:
+            return Quantity(qty=float("NaN"), unit=lhs.value.unit/rhs.value.unit)
+        elif divide_by_zero is DivideByZero.INF:
+            return Quantity(qty=float("inf"), unit=lhs.value.unit/rhs.value.unit)
+        elif divide_by_zero is DivideByZero.NONE:
+            return
+        else:
+            raise
 
 
 @compute_node(overloads=div_)
-def div_qty_float(lhs: TS[Quantity], rhs: TS[float]) -> TS[Quantity]:
-    return lhs.value / rhs.value
+def div_qty_float(lhs: TS[Quantity], rhs: TS[float], divide_by_zero: DivideByZero = DivideByZero.ERROR) -> TS[Quantity]:
+    try:
+        return lhs.value / rhs.value
+    except ZeroDivisionError:
+        if divide_by_zero is DivideByZero.NAN:
+            return Quantity(qty=float("NaN"), unit=lhs.value.unit)
+        elif divide_by_zero is DivideByZero.INF:
+            return Quantity(qty=float("inf"), unit=lhs.value.unit)
+        elif divide_by_zero is DivideByZero.NONE:
+            return
+        else:
+            raise
 
 
 @compute_node(overloads=mul_)
