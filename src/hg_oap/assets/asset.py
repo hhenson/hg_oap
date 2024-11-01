@@ -1,6 +1,7 @@
 from dataclasses import dataclass
 
 from hg_oap.units import Quantity
+from hg_oap.units.default_unit_system import U
 from hg_oap.units.unit import Unit
 from hg_oap.units.unit_system import UnitConversionContext
 from hg_oap.utils.exprclass import ExprClass
@@ -29,7 +30,7 @@ class PhysicalAsset(Asset):
     e.g. density for mass/volume
     """
     name: str
-    default_unit: Unit = None  # TODO - add a Unit.null?
+    default_unit: Unit = U.NONE
     unit_conversion_factors: tuple[Quantity[float], ...] = ()
 
 
