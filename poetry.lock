@@ -443,13 +443,13 @@ test = ["objgraph", "psutil"]
 
 [[package]]
 name = "hgraph"
-version = "0.3.26"
+version = "0.3.30"
 description = "A functional reactive platform used to process time-series streams. Provides support for backtest (simulation) and realtime time-series processing. Using a forward propagation graph with a microtask scheduler for the runtime engine."
 optional = false
 python-versions = ">=3.11"
 files = [
-    {file = "hgraph-0.3.26-py3-none-any.whl", hash = "sha256:918ce1feeff6568df8f4bba5346f5ea89c488b3335bf512e4ff6e8f94d7d59ec"},
-    {file = "hgraph-0.3.26.tar.gz", hash = "sha256:7f1e10c387508c7dfc4525262540586ddb816834c2523db95d4e54298d58548c"},
+    {file = "hgraph-0.3.30-py3-none-any.whl", hash = "sha256:13179293f9b15aadffc99586f4b7b1772e23ecbca584a2892be5c3af7acb1caa"},
+    {file = "hgraph-0.3.30.tar.gz", hash = "sha256:33375d1327509fade229ff66e851e8ff805edbe6da010fb1d946886175a7cb0b"},
 ]
 
 [package.dependencies]
@@ -468,6 +468,7 @@ sphinxcontrib-plantuml = ">=0.30"
 sqlalchemy = "*"
 
 [package.extras]
+notebook = ["matplotlib"]
 web = ["perspective-python (<3.0.0)", "requests", "tornado"]
 
 [[package]]
