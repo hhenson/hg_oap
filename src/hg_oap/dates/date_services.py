@@ -1,4 +1,4 @@
-__all__ = ("business_days", "business_days_from_calendar")
+__all__ = ("business_days", "business_days_from_calendar", "CALENDAR_TYPE")
 
 from datetime import date, datetime, timedelta
 from typing import TypeVar
