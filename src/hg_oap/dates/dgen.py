@@ -104,7 +104,6 @@ class DGen(Item):
             # print(f"{str(self)} generated {d}")
             yield d
 
-
     def __invoke__(
         self,
         start: date = date.min,
@@ -858,9 +857,6 @@ class MonthsDGen(DGen):
             year = first.year + first.month // 12
             month = first.month % 12 + 1
             first = date(year, month, 1)
-
-    def __call__(self, gen):
-        return month_start(gen)
 
     @property
     def end(self):
