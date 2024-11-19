@@ -54,7 +54,7 @@ class FutureContractSpec(CompoundScalar, ExprClass, UnitConversionContext):
     contract_size: Quantity
     currency: Currency
 
-    trading_calendar: Calendar  # TODO - we also need settlement calendar and reset calendar?  To get the expiry dates
+    trading_calendar: Calendar
     settlement: Settlement
 
     quotation_currency_unit: Unit
@@ -135,3 +135,4 @@ class Future(Instrument):
     expiry: date = SELF.series.expiry(CONTRACT_BASE_DATE=SELF.contract_base_date)
 
     unit_conversion_factors: tuple[Quantity, ...] = SELF.series.spec.unit_conversion_factors
+    trading_calendar: Calendar = SELF.series.spec.trading_calendar
