@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from datetime import date
+from datetime import date, time
 from typing import Generic, TypeVar
 
 from hgraph import CompoundScalar, TSB, TSD, Frame, graph, TS, map_, add_, switch_, compute_node, subscription_service, \
@@ -197,7 +197,10 @@ def test_example():
             expiry=roll_bwd(CONTRACT_BASE_DATE + '15d').over(SELF.spec.trading_calendar),
             first_trading_date=CONTRACT_BASE_DATE - '3y' < years.dec.days[15],
             # dec 15th 3 years before the expiry date (actual CME rules are more complex)
-            last_trading_date=SELF.expiry(CONTRACT_BASE_DATE)
+            last_trading_date=SELF.expiry(CONTRACT_BASE_DATE),
+            first_delivery_date=SELF.last_trading_date,
+            last_delivery_date=SELF.last_trading_date,
+            last_trading_time=time(17, 0)
         )
         zck5 = Future(series=corn_future_months, contract_base_date=date(2025, 5, 1))
         register_instrument(zck5)

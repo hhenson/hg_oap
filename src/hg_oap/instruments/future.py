@@ -133,3 +133,5 @@ class Future(Instrument):
     first_delivery_date: date = SELF.series.first_delivery_date(CONTRACT_BASE_DATE=SELF.contract_base_date)
     last_delivery_date: date = SELF.series.last_delivery_date(CONTRACT_BASE_DATE=SELF.contract_base_date)
     expiry: date = SELF.series.expiry(CONTRACT_BASE_DATE=SELF.contract_base_date)
+
+    unit_conversion_factors: tuple[Quantity, ...] = SELF.series.spec.unit_conversion_factors
