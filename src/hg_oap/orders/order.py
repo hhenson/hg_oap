@@ -34,7 +34,7 @@ class Fill(CompoundScalar):
     thus fill price is notional / qty.
     """
     fill_id: str
-    qty: Quantity[float]
+    qty: Quantity
     notional: Price
     additional_ids: tuple[str, ...] = tuple()
 
@@ -62,8 +62,8 @@ class SingleLegOrder(Order):
     provide the historical state of all received fills.
     """
     order_type: TS[SingleLegOrderType]
-    remaining_qty: TSB[Quantity[float]]
-    filled_qty: TSB[Quantity[float]]
+    remaining_qty: TSB[Quantity]
+    filled_qty: TSB[Quantity]
     filled_notional: TSB[Price]
     is_filled: TS[bool]
     fills: TS[Fill]
@@ -79,8 +79,8 @@ class MultiLegOrder(Order):
     Examples include IfDone, OneCancelOther, etc.
     """
     order_type: TS[MultiLegOrderType]
-    remaining_qty: TSD[LEG_ID, TSB[Quantity[float]]]
-    filled_qty: TSD[LEG_ID, TSB[Quantity[float]]]
+    remaining_qty: TSD[LEG_ID, TSB[Quantity]]
+    filled_qty: TSD[LEG_ID, TSB[Quantity]]
     filled_notional: TSD[LEG_ID, TSB[Price]]
     is_filled: TSD[LEG_ID, TS[bool]]
     fills: TSD[LEG_ID, TS[Fill]]

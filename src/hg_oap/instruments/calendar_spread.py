@@ -22,7 +22,7 @@ class CalendarSpread(Instrument):
 
     currency_unit: Unit = SELF.near.currency_unit
     unit: Unit = SELF.near.unit
-    tick_size: Quantity[float] = SELF.near.tick_size
+    tick_size: Quantity = SELF.near.tick_size
 
     near: Future
     far: Future

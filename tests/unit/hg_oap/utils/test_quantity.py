@@ -37,71 +37,71 @@ def test_quantity_1():
 
 def test_quantity_operator_add():
     @graph
-    def g(a: TS[Quantity[float]], b: TS[Quantity[float]]) -> TS[Quantity[float]]:
+    def g(a: TS[Quantity], b: TS[Quantity]) -> TS[Quantity]:
         with U:
             return a + b
 
-    assert eval_node(g, [Quantity[float](1.0, U.m), Quantity[float](2.0, U.m)], [Quantity[float](1.0, U.m)]) == [
-        Quantity[float](2.0, U.m),
-        Quantity[float](3.0, U.m),
+    assert eval_node(g, [Quantity(1.0, U.m), Quantity(2.0, U.m)], [Quantity(1.0, U.m)]) == [
+        Quantity(2.0, U.m),
+        Quantity(3.0, U.m),
     ]
 
 
 def test_quantity_operator_sub():
     @graph
-    def g(a: TS[Quantity[float]], b: TS[Quantity[float]]) -> TS[Quantity[float]]:
+    def g(a: TS[Quantity], b: TS[Quantity]) -> TS[Quantity]:
         with U:
             return a - b
 
-    assert eval_node(g, [Quantity[float](1.0, U.m), Quantity[float](2.0, U.m)], [Quantity[float](1.0, U.m)]) == [
-        Quantity[float](0.0, U.m),
-        Quantity[float](1.0, U.m),
+    assert eval_node(g, [Quantity(1.0, U.m), Quantity(2.0, U.m)], [Quantity(1.0, U.m)]) == [
+        Quantity(0.0, U.m),
+        Quantity(1.0, U.m),
     ]
 
 
 @pytest.mark.skip("Runs stand alone but not with the rest of the tests")
 def test_quantity_operator_mul():
     @graph
-    def g(a: TS[Quantity[float]], b: TS[Quantity[float]]) -> TS[Quantity[float]]:
+    def g(a: TS[Quantity], b: TS[Quantity]) -> TS[Quantity]:
         with U:
             return a * b
 
-    assert eval_node(g, [Quantity[float](1.0, U.m), Quantity[float](2.0, U.m)], [Quantity[float](1.0, U.m)]) == [
-        Quantity[float](1.0, U.m**2),
-        Quantity[float](2.0, U.m**2),
+    assert eval_node(g, [Quantity(1.0, U.m), Quantity(2.0, U.m)], [Quantity(1.0, U.m)]) == [
+        Quantity(1.0, U.m**2),
+        Quantity(2.0, U.m**2),
     ]
 
 
 @pytest.mark.skip("Runs stand alone but not with the rest of the tests")
 def test_quantity_operator_div():
     @graph
-    def g(a: TS[Quantity[float]], b: TS[Quantity[float]]) -> TS[Quantity[float]]:
+    def g(a: TS[Quantity], b: TS[Quantity]) -> TS[Quantity]:
         with U:
             return a / b
 
-    assert eval_node(g, [Quantity[float](1.0, U.m), Quantity[float](2.0, U.m)], [Quantity[float](1.0, U.s)]) == [
-        Quantity[float](1.0, U.m / U.s),
-        Quantity[float](2.0, U.m / U.s),
+    assert eval_node(g, [Quantity(1.0, U.m), Quantity(2.0, U.m)], [Quantity(1.0, U.s)]) == [
+        Quantity(1.0, U.m / U.s),
+        Quantity(2.0, U.m / U.s),
     ]
 
 
 def test_quantity_operator_mul_float():
     @graph
-    def g(a: TS[Quantity[float]], b: TS[float]) -> TS[Quantity[float]]:
+    def g(a: TS[Quantity], b: TS[float]) -> TS[Quantity]:
         return a * b
 
-    assert eval_node(g, [Quantity[float](1.0, U.m), Quantity[float](2.0, U.m)], [2.0]) == [
-        Quantity[float](2.0, U.m),
-        Quantity[float](4.0, U.m),
+    assert eval_node(g, [Quantity(1.0, U.m), Quantity(2.0, U.m)], [2.0]) == [
+        Quantity(2.0, U.m),
+        Quantity(4.0, U.m),
     ]
 
 
 def test_quantity_operator_div_float():
     @graph
-    def g(a: TS[Quantity[float]], b: TS[float]) -> TS[Quantity[float]]:
+    def g(a: TS[Quantity], b: TS[float]) -> TS[Quantity]:
         return a / b
 
-    assert eval_node(g, [Quantity[float](2.0, U.m), Quantity[float](6.0, U.m)], [2.0]) == [
-        Quantity[float](1.0, U.m),
-        Quantity[float](3.0, U.m),
+    assert eval_node(g, [Quantity(2.0, U.m), Quantity(6.0, U.m)], [2.0]) == [
+        Quantity(1.0, U.m),
+        Quantity(3.0, U.m),
     ]

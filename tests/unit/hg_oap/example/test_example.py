@@ -63,7 +63,7 @@ class Position(CompoundScalar, Generic[NUMBER]):
     instrument: Instrument
 
 
-POSITIONS = TypeVar('POSITIONS', Position[float], Frame[Position[float]], TSD[str, TSB[Quantity[float]]])
+POSITIONS = TypeVar('POSITIONS', Position[float], Frame[Position[float]], TSD[str, TSB[Quantity]])
 
 
 ###################################################
@@ -80,7 +80,7 @@ class Price(CompoundScalar, Generic[NUMBER], ExprClass, UnitConversionContext):
     currency_unit: Unit
     unit: Unit
 
-    unit_conversion_factors: tuple[Quantity[float], ...] = lambda self: (self.qty * (self.currency_unit / self.unit),)
+    unit_conversion_factors: tuple[Quantity, ...] = lambda self: (self.qty * (self.currency_unit / self.unit),)
 
 
 #####################
@@ -125,7 +125,7 @@ def convert_price_to_currency_units(price: TSB[Price], currency_unit: TS[Unit]) 
 ###################################################
 
 @graph
-def calculate_notional(positions: Position[float], currency: TS[Unit]) -> TSB[Quantity[float]]:
+def calculate_notional(positions: Position[float], currency: TS[Unit]) -> TSB[Quantity]:
     return calculate_notional_tsb(TSB[Position[float]].from_ts(
         qty=positions.qty,
         unit=dedup(const(positions.unit, TS[Unit])),
@@ -134,7 +134,7 @@ def calculate_notional(positions: Position[float], currency: TS[Unit]) -> TSB[Qu
 
 
 @graph(overloads=calculate_notional)
-def calculate_notional_tsb(position: TSB[Position[float]], currency_unit: TS[Unit]) -> TSB[Quantity[float]]:
+def calculate_notional_tsb(position: TSB[Position[float]], currency_unit: TS[Unit]) -> TSB[Quantity]:
     price = get_price(position.instrument.symbol)
     requires_conversion = price.currency_unit != currency_unit
     requires_currency_conversion = price.currency_unit.dimension != currency_unit.dimension
@@ -146,13 +146,13 @@ def calculate_notional_tsb(position: TSB[Position[float]], currency_unit: TS[Uni
     }, combine[TS[tuple[bool, bool]]](requires_currency_conversion, requires_conversion), price, currency_unit)
 
     with position.instrument:
-        return TSB[Quantity[float]].from_ts(
+        return TSB[Quantity].from_ts(
             qty=price_in_currency.qty * convert_units(position.qty, position.unit, to=price.unit),
             unit=price_in_currency.currency_unit)
 
 
 @graph(overloads=calculate_notional)
-def calculate_notional_tsd(positions: TSD[str, TSB[Quantity[float]]], currency: TS[Unit]) -> TSB[Quantity[float]]:
+def calculate_notional_tsd(positions: TSD[str, TSB[Quantity]], currency: TS[Unit]) -> TSB[Quantity]:
     """
     Calculate the notional value of a set of positions. The notional value is the value of the position if the position
     were to be closed out at the current market price.
@@ -171,24 +171,24 @@ class Agricultural(Commodity):
 
 def test_example():
     @graph
-    def g(prices: TSD[str, TSB[Price[float]]]) -> TS[Quantity[float]]:
+    def g(prices: TSD[str, TSB[Price[float]]]) -> TS[Quantity]:
         register_service("price_service", price_service)
         register_service("instrument_service", instrument_service)
 
         corn = Agricultural(symbol='C', name="corn", default_unit=U.bushel,
-                            unit_conversion_factors=(Quantity[float](0.75, U.kg / U.l),))
+                            unit_conversion_factors=(Quantity(0.75, U.kg / U.l),))
         corn_future_months = FutureContractSeries(
             spec=FutureContractSpec(
                 exchange_mic='CME',
                 symbol='ZC',
                 underlying=PhysicalCommodity(symbol='Corn', asset=corn),
-                contract_size=Quantity[float](5000., U.bushel),
+                contract_size=Quantity(5000., U.bushel),
                 currency=Currencies.USD.value,
                 trading_calendar=WeekendCalendar(),
                 settlement=Settlement(SettlementMethod.Deliverable),
                 quotation_currency_unit=U.USX,
                 quotation_unit=U.bushel,
-                tick_size=Quantity[float](0.25, U.USX),
+                tick_size=Quantity(0.25, U.USX),
             ),
             name='M',
             symbol_expr=lambda
@@ -210,7 +210,7 @@ def test_example():
 
         map_(lambda key, p: submit_price(key, p), prices)
 
-        return combine[TS[Quantity[float]]](**notional.as_dict())
+        return combine[TS[Quantity]](**notional.as_dict())
 
     assert eval_node(
         g,

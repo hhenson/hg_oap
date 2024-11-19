@@ -22,7 +22,7 @@ class FutureSpread(Instrument):
 
     currency_unit: Unit = SELF.long.currency_unit
     unit: Unit = SELF.long.unit
-    tick_size: Quantity[float] = SELF.long.tick_size
+    tick_size: Quantity = SELF.long.tick_size
 
     long: Future
     short: Future

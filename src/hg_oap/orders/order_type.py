@@ -31,7 +31,7 @@ class OrderType(CompoundScalar):
 @dataclass(frozen=True)
 class SingleLegOrderType(OrderType):
     instrument: Instrument
-    quantity: Quantity[float]
+    quantity: Quantity
 
 
 SINGLE_LEG_ORDER_TYPE = TypeVar("SINGLE_LEG_ORDER_TYPE", bound=SingleLegOrderType)

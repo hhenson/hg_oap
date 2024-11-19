@@ -31,7 +31,7 @@ class PhysicalAsset(Asset):
     """
     name: str
     default_unit: Unit = U.NONE
-    unit_conversion_factors: tuple[Quantity[float], ...] = ()
+    unit_conversion_factors: tuple[Quantity, ...] = ()
 
 
 @dataclass(frozen=True)

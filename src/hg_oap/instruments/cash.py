@@ -17,7 +17,7 @@ class Cash(Instrument):
     currency_unit: Unit = SELF.currency.unit
     unit: Unit = SELF.currency.unit
 
-    unit_conversion_factors: tuple[Quantity[float], ...] = ()
+    unit_conversion_factors: tuple[Quantity, ...] = ()
 
 
 class CashInstruments(Enum):
