@@ -65,7 +65,7 @@ class Quantity(CompoundScalar):
 
     def __pow__(self, other):
         if isinstance(other, Number):
-            return Quantity(self.qty ** other, self.unit**other)
+            return Quantity(self.qty ** other, self.unit ** other)
         else:
             return NotImplemented
 

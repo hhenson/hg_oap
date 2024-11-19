@@ -4,7 +4,7 @@ from typing import Generic, TypeVar
 
 from hgraph import CompoundScalar, TSB, TSD, Frame, graph, TS, map_, add_, switch_, compute_node, subscription_service, \
     request_reply_service, service_impl, register_service, combine, sample, flip, dedup, const
-from hgraph import merge
+from hgraph import merge, operator
 from hgraph.nodes import make_tsd
 from hgraph.test import eval_node
 
@@ -124,8 +124,12 @@ def convert_price_to_currency_units(price: TSB[Price], currency_unit: TS[Unit]) 
 
 ###################################################
 
-@graph
+@operator
 def calculate_notional(positions: Position[float], currency: TS[Unit]) -> TSB[Quantity]:
+    ...
+
+@graph(overloads=calculate_notional)
+def calculate_notional_default(positions: Position[float], currency: TS[Unit]) -> TSB[Quantity[float]]:
     return calculate_notional_tsb(TSB[Position[float]].from_ts(
         qty=positions.qty,
         unit=dedup(const(positions.unit, TS[Unit])),
@@ -176,19 +180,19 @@ def test_example():
         register_service("instrument_service", instrument_service)
 
         corn = Agricultural(symbol='C', name="corn", default_unit=U.bushel,
-                            unit_conversion_factors=(Quantity(0.75, U.kg / U.l),))
+                            unit_conversion_factors=(Quantity[float](0.75, U.kg / U.l),))
         corn_future_months = FutureContractSeries(
             spec=FutureContractSpec(
                 exchange_mic='CME',
                 symbol='ZC',
                 underlying=PhysicalCommodity(symbol='Corn', asset=corn),
-                contract_size=Quantity(5000., U.bushel),
+                contract_size=Quantity[float](5000., U.bushel),
                 currency=Currencies.USD.value,
                 trading_calendar=WeekendCalendar(),
                 settlement=Settlement(SettlementMethod.Deliverable),
                 quotation_currency_unit=U.USX,
                 quotation_unit=U.bushel,
-                tick_size=Quantity(0.25, U.USX),
+                tick_size=Quantity[float](0.25, U.USX),
             ),
             name='M',
             symbol_expr=lambda
