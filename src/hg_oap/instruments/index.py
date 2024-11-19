@@ -3,6 +3,8 @@ from dataclasses import dataclass
 from hg_oap.instruments.instrument import Instrument
 from hg_oap.utils import SELF
 
+__all__ = ("Index",)
+
 
 # TODO - an Index should perhaps not be an Instrument.  It is Priceable but not Tradable
 
