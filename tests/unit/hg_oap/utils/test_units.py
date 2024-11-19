@@ -235,7 +235,7 @@ def test_contexts_and_conversion_factors_2():
             )
 
 
-        asset = MyAsset('corn', Quantity[float](0.75, U.kg / U.liter))
+        asset = MyAsset('corn', Quantity(0.75, U.kg / U.liter))
         instrument = MyInstrument(asset=asset, lot_size=10000., unit=U.bushel, price_unit=U.cent, price_tick_size=0.25, price_currency='USD')
 
         with instrument:

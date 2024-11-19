@@ -129,7 +129,7 @@ def calculate_notional(positions: Position[float], currency: TS[Unit]) -> TSB[Qu
     ...
 
 @graph(overloads=calculate_notional)
-def calculate_notional_default(positions: Position[float], currency: TS[Unit]) -> TSB[Quantity[float]]:
+def calculate_notional_default(positions: Position[float], currency: TS[Unit]) -> TSB[Quantity]:
     return calculate_notional_tsb(TSB[Position[float]].from_ts(
         qty=positions.qty,
         unit=dedup(const(positions.unit, TS[Unit])),
@@ -180,19 +180,19 @@ def test_example():
         register_service("instrument_service", instrument_service)
 
         corn = Agricultural(symbol='C', name="corn", default_unit=U.bushel,
-                            unit_conversion_factors=(Quantity[float](0.75, U.kg / U.l),))
+                            unit_conversion_factors=(Quantity(0.75, U.kg / U.l),))
         corn_future_months = FutureContractSeries(
             spec=FutureContractSpec(
                 exchange_mic='CME',
                 symbol='ZC',
                 underlying=PhysicalCommodity(symbol='Corn', asset=corn),
-                contract_size=Quantity[float](5000., U.bushel),
+                contract_size=Quantity(5000., U.bushel),
                 currency=Currencies.USD.value,
                 trading_calendar=WeekendCalendar(),
                 settlement=Settlement(SettlementMethod.Deliverable),
                 quotation_currency_unit=U.USX,
                 quotation_unit=U.bushel,
-                tick_size=Quantity[float](0.25, U.USX),
+                tick_size=Quantity(0.25, U.USX),
             ),
             name='M',
             symbol_expr=lambda
