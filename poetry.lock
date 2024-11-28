@@ -473,13 +473,13 @@ web = ["perspective-python (<3.0.0)", "requests", "tornado"]
 
 [[package]]
 name = "holidays"
-version = "0.60"
+version = "0.61"
 description = "World Holidays Framework"
 optional = false
 python-versions = ">=3.9"
 files = [
-    {file = "holidays-0.60-py3-none-any.whl", hash = "sha256:d857949c5ee35655215a10c5a26e6a856bdc3beccc4fbbc8debef98dfba17b82"},
-    {file = "holidays-0.60.tar.gz", hash = "sha256:495fc5123f5d92b92673237375eb8c15a03d21c647b089db509b7d9612267556"},
+    {file = "holidays-0.61-py3-none-any.whl", hash = "sha256:917d98de2b8260f0f763130eed074eedbf7239c9e98e561cb97230b4727ecc91"},
+    {file = "holidays-0.61.tar.gz", hash = "sha256:eede28808bc9e09118ffd837e05e57b1c644a5cd5a8cebb4cef1e7bc19e30437"},
 ]
 
 [package.dependencies]
