@@ -53,7 +53,7 @@ def test_simple_handler():
         OrderRequest.create_request(
             CreateOrderRequest, None, 'Howard', order_id="1",
             order_type=MarketOrderType(instrument=Instrument(symbol="MCU_3M"),
-                                       quantity=Quantity[float](qty=1.0, unit=UnitSystem.instance().lot)),
+                                       quantity=Quantity(qty=1.0, unit=UnitSystem.instance().lot)),
             originator_info=OriginatorInfo(account="account")
         )
     ]

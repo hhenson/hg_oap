@@ -88,14 +88,14 @@ class UnitSystem:
         assert self.__contexts__[-1] == context
         self.__contexts__.pop()
 
-    def conversion_factor(self, dimension: "Dimension") -> "Quantity[float]":
+    def conversion_factor(self, dimension: "Dimension") -> "Quantity":
         for context in reversed(self.__contexts__):
             if factor := context.conversion_factor(dimension):
                 return factor
 
 
 class UnitConversionContext:
-    def __init__(self, conversion_factors: tuple["Quantity[float]", ...] = ()):
+    def __init__(self, conversion_factors: tuple["Quantity", ...] = ()):
         self.unit_conversion_factors = conversion_factors
 
     def __enter__(self):
@@ -104,7 +104,7 @@ class UnitConversionContext:
     def __exit__(self, exc_type, exc_val, exc_tb):
         UnitSystem.instance().exit_context(self)
 
-    def conversion_factor(self, dimension: float) -> "Quantity[float]":
+    def conversion_factor(self, dimension: float) -> "Quantity":
         if (ucf := getattr(self, "_unit_conversion_factors_lookup", None)) is None:
             ucf = UnitConversionContext.make_conversion_factors(self.unit_conversion_factors)
             object.__setattr__(self, '_unit_conversion_factors_lookup', ucf)
@@ -112,7 +112,7 @@ class UnitConversionContext:
         return ucf.get(dimension, None)
 
     @staticmethod
-    def make_conversion_factors(factors: Iterable["Quantity[float]"]):
+    def make_conversion_factors(factors: Iterable["Quantity"]):
         combination_factors = [[reduce(operator.mul, j)
                                 for j in combinations(factors, i)] for i in range(2, len(factors) + 1)]
 

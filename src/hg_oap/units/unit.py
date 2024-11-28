@@ -34,14 +34,14 @@ class Unit(CompoundScalar, ExprClass):
     def __rmul__(self, value):
         if isinstance(value, (int, float)):
             from hg_oap.units.quantity import Quantity
-            return Quantity[type(value)](value, self)
+            return Quantity(value, self)
 
         return NotImplemented
 
     def __rtruediv__(self, value):
         if isinstance(value, (int, float)):
             from hg_oap.units.quantity import Quantity
-            return Quantity[type(value)](value, self ** -1)
+            return Quantity(value, self ** -1)
 
         return NotImplemented
 

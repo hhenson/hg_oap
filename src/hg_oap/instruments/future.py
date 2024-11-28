@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from datetime import date
+from datetime import date, time
 from enum import Enum
 from typing import Type
 
@@ -51,17 +51,17 @@ class FutureContractSpec(CompoundScalar, ExprClass, UnitConversionContext):
     exchange_mic: str
     symbol: str
     underlying: Instrument
-    contract_size: Quantity[float]
+    contract_size: Quantity
     currency: Currency
 
-    trading_calendar: Calendar  # TODO - we also need settlement calendar and reset calendar?  To get the expiry dates
+    trading_calendar: Calendar
     settlement: Settlement
 
     quotation_currency_unit: Unit
     quotation_unit: Unit
-    tick_size: Quantity[float]
+    tick_size: Quantity
 
-    unit_conversion_factors: tuple[Quantity[float], ...] = lambda self: self.underlying.unit_conversion_factors + (
+    unit_conversion_factors: tuple[Quantity, ...] = lambda self: self.underlying.unit_conversion_factors + (
         self.contract_size / (1.0 * U.lot),
     )
 
@@ -70,26 +70,29 @@ class FutureContractSpec(CompoundScalar, ExprClass, UnitConversionContext):
 class FutureContractSeries(CompoundScalar, ExprClass, UnitConversionContext):
     SELF: "FutureContractSeries" = SELF
     """
-    A series of future contracts.
+    A series of future contracts
     """
 
     spec: FutureContractSpec
     name: str
-    symbol: str = SELF.spec.symbol + SELF.name
-    future_type: Type[Instrument] = lambda self: Future
-    frequency: DGen  # a date generator that produces "contract base dates"
-
-    symbol_expr: Expression[[Instrument], str]
-
-    expiry: Expression[[date], date]  # given a contract base date, produces the expiry date
+    symbol: str = SELF.spec.symbol + SELF.name   # The symbol of the series
+    symbol_expr: Expression[[Instrument], str]   # Given a future, generates the symbol for the future
+    future_type: Type[Instrument] = lambda self: Future  # The specific type of future belonging to the series
+    frequency: DGen  # a date generator that produces the "contract base date" for each future in the series
 
     first_trading_date: Expression[[date], date]  # given a contract base date, produces the first trading date
     last_trading_date: Expression[[date], date]  # given a contract base date, produces the last trading date
+    last_trading_time: time  # timezone-aware time of last trading on the last trading date
+
+    first_delivery_date: Expression[[date], date]  # given a contract base date, produces the first delivery date
+    last_delivery_date: Expression[[date], date]  # given a contract base date, produces the last delivery date
+    expiry: Expression[[date], date]  # given a contract base date, produces the expiry date
 
 
 CONTRACT_BASE_DATE = lazy(make_dgen)(ParameterOp(_name="CONTRACT_BASE_DATE"))
 
 
+# Market-convention future month codes for each calendar month
 MONTH_CODES = ["F", "G", "H", "J", "K", "M", "N", "Q", "U", "V", "X", "Z"]
 
 
@@ -121,10 +124,15 @@ class Future(Instrument):
 
     currency_unit: Unit = SELF.series.spec.quotation_currency_unit
     unit: Unit = SELF.series.spec.quotation_unit
-    tick_size: Quantity[float] = SELF.series.spec.tick_size
+    tick_size: Quantity = SELF.series.spec.tick_size
 
-    expiry: date = SELF.series.expiry(CONTRACT_BASE_DATE=SELF.contract_base_date)
     first_trading_date: date = SELF.series.first_trading_date(CONTRACT_BASE_DATE=SELF.contract_base_date)
     last_trading_date: date = SELF.series.last_trading_date(CONTRACT_BASE_DATE=SELF.contract_base_date)
+    last_trading_time: time = SELF.series.last_trading_time  # Time and timezone of the last trading time
 
-    unit_conversion_factors: tuple[Quantity[float], ...] = SELF.series.spec.unit_conversion_factors
+    first_delivery_date: date = SELF.series.first_delivery_date(CONTRACT_BASE_DATE=SELF.contract_base_date)
+    last_delivery_date: date = SELF.series.last_delivery_date(CONTRACT_BASE_DATE=SELF.contract_base_date)
+    expiry: date = SELF.series.expiry(CONTRACT_BASE_DATE=SELF.contract_base_date)
+
+    unit_conversion_factors: tuple[Quantity, ...] = SELF.series.spec.unit_conversion_factors
+    trading_calendar: Calendar = SELF.series.spec.trading_calendar

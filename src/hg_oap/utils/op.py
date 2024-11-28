@@ -4,7 +4,7 @@ import operator
 from collections import defaultdict
 from typing import Callable, Union, Sequence, Mapping, Any
 
-__all__ = ('lazy', 'calc', 'ParameterOp', 'Expression')
+__all__ = ('lazy', 'calc', 'ParameterOp', 'Expression', 'is_op')
 
 
 def is_op(obj):

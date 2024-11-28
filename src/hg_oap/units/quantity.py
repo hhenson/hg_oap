@@ -1,8 +1,7 @@
 from dataclasses import dataclass
 from numbers import Number
-from typing import Generic
 
-from hg_oap.units.unit import Unit, NUMBER
+from hg_oap.units.unit import Unit
 from hgraph import CompoundScalar, compute_node, div_, TS, mul_, add_, sub_, DivideByZero
 
 __all__ = ("Quantity",)
@@ -12,8 +11,8 @@ EPSILON = 1e-9
 
 
 @dataclass(frozen=True, eq=False, unsafe_hash=True, repr=False)
-class Quantity(CompoundScalar, Generic[NUMBER]):
-    qty: NUMBER
+class Quantity(CompoundScalar):
+    qty: float
     unit: Unit
 
     def __str__(self):
@@ -26,99 +25,88 @@ class Quantity(CompoundScalar, Generic[NUMBER]):
         if isinstance(other, Quantity):
             other_qty = other.unit.convert(other.qty, to=self.unit)
             return other_qty - EPSILON <= self.qty <= other_qty + EPSILON
-
-        return NotImplemented
+        else:
+            return NotImplemented
 
     def __add__(self, other):
         if isinstance(other, Quantity):
             ret, conv = self.unit + other.unit
-            return Quantity[type(self.qty)](self.qty + other.unit.convert(other.qty, to=conv), ret)
-
-        return NotImplemented
+            return Quantity(self.qty + other.unit.convert(other.qty, to=conv), ret)
+        else:
+            return NotImplemented
 
     def __sub__(self, other):
         if isinstance(other, Quantity):
             ret, conv = self.unit - other.unit
-            return Quantity[type(self.qty)](self.qty - other.unit.convert(other.qty, to=conv), ret)
-
-        return NotImplemented
+            return Quantity(self.qty - other.unit.convert(other.qty, to=conv), ret)
+        else:
+            return NotImplemented
 
     def __mul__(self, other):
-        tp = self.qty.__class__
-        if tp is float and other.__class__ in (int, float):
-            return Quantity[float](self.qty * other, self.unit)
+        if isinstance(other, Number):
+            return Quantity(self.qty * other, self.unit)
         elif isinstance(other, Quantity):
-            return Quantity[tp](self.qty * other.qty, self.unit * other.unit)
-        elif isinstance(other, tp):
-            return Quantity[tp](self.qty * other, self.unit)
-
-        return NotImplemented
+            return Quantity(self.qty * other.qty, self.unit * other.unit)
+        else:
+            return NotImplemented
 
     __rmul__ = __mul__
 
     def __truediv__(self, other):
-        tp = self.qty.__class__
-        if tp is float and other.__class__ in (int, float):
-            return Quantity[tp](self.qty / other, self.unit)
-        elif isinstance(other, Quantity) and type(other.qty) is tp:
-            return Quantity[tp](self.qty / other.qty, self.unit / other.unit)
-        elif isinstance(other, tp):
-            return Quantity[tp](self.qty / other, self.unit)
-
-        return NotImplemented
+        if isinstance(other, Number):
+            return Quantity(self.qty / other, self.unit)
+        elif isinstance(other, Quantity):
+            return Quantity(self.qty / other.qty, self.unit / other.unit)
+        else:
+            return NotImplemented
 
     def __rtruediv__(self, other):
-        tp = self.qty.__class__
-        if isinstance(other, tp):
-            qty = other / self.qty
-        else:
-            qty = tp(other) / self.qty
-        return Quantity[tp](qty, self.unit**-1)
+        return Quantity(float(other) / self.qty, self.unit ** -1)
 
     def __pow__(self, other):
         if isinstance(other, Number):
-            return Quantity[type(self.qty)](self.qty**other, self.unit**other)
-
-        return NotImplemented
+            return Quantity(self.qty ** other, self.unit ** other)
+        else:
+            return NotImplemented
 
     def __round__(self, n=None):
-        return Quantity[type(self.qty)](round(self.qty, n), self.unit)
+        return Quantity(round(self.qty, n), self.unit)
 
     def __lt__(self, other):
         if isinstance(other, Quantity):
             return self.qty < other.unit.convert(other.qty, to=self.unit)
-
-        return NotImplemented
+        else:
+            return NotImplemented
 
     def __le__(self, other):
         if isinstance(other, Quantity):
             return self.qty <= other.unit.convert(other.qty, to=self.unit)
-
-        return NotImplemented
+        else:
+            return NotImplemented
 
     def __gt__(self, other):
         if isinstance(other, Quantity):
             return self.qty > other.unit.convert(other.qty, to=self.unit)
-
-        return NotImplemented
+        else:
+            return NotImplemented
 
     def __ge__(self, other):
         if isinstance(other, Quantity):
             return self.qty >= other.unit.convert(other.qty, to=self.unit)
-
-        return NotImplemented
+        else:
+            return NotImplemented
 
     def __abs__(self):
-        return Quantity[type(self.qty)](abs(self.qty), self.unit)
+        return Quantity(abs(self.qty), self.unit)
 
     def __neg__(self):
-        return Quantity[type(self.qty)](-self.qty, self.unit)
+        return Quantity(-self.qty, self.unit)
 
     def __pos__(self):
-        return Quantity[type(self.qty)](+self.qty, self.unit)
+        return Quantity(+self.qty, self.unit)
 
     def as_(self, unit):
-        return Quantity[type(self.qty)](self.unit.convert(self.qty, to=unit), unit)
+        return Quantity(self.unit.convert(self.qty, to=unit), unit)
 
 
 @compute_node(overloads=div_)

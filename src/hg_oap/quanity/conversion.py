@@ -35,7 +35,7 @@ def convert_units_default(qty: TS[NUMBER], fr: TS[Unit], to: TS[Unit], tp: Type[
 
 
 @graph(overloads=convert_units)
-def convert_qty(qty: TSB[Quantity[NUMBER]], to: TS[Unit]) -> TSB[Quantity[NUMBER]]:
+def convert_qty(qty: TSB[Quantity], to: TS[Unit]) -> TSB[Quantity]:
     return {"qty": convert_units(qty.qty, qty.unit, to), "unit": to}
 
 
