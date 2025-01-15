@@ -59,3 +59,7 @@ Version 0.1.10 (3-11-2024)
 
 * Clean up calendar
 
+Version 0.1.11 (15-01-2025)
+--------------------------
+
+* Numerous bug fixes
