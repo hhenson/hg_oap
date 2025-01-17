@@ -3,7 +3,7 @@ from datetime import date
 from typing import Type
 
 from hg_oap.assets.asset import PhysicalAsset
-from hg_oap.assets.currency import Currencies
+from hg_oap.impl.assets.currency import Currencies
 from hg_oap.dates import WeekendCalendar, months
 from hg_oap.instrument_data_service.instrument_data_service import instrument_by_name, InstrumentData
 from hg_oap.instruments.calendar_spread import CalendarSpread
@@ -117,7 +117,7 @@ def instrument_by_name_impl(key: TSS[str]) -> TSD[str, TSB[Stream[InstrumentData
 
 
 """
-PriceTraits implement scoring filter attributes against instrument attributes.  
+PriceTraits implement scoring filter attributes against instrument attributes.
 They are part of the pricing regime context mappings.
 """
 @dataclass(frozen=True)

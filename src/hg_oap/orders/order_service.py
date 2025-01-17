@@ -6,7 +6,7 @@ from frozendict import frozendict
 from hgraph import request_reply_service, TSD, TS, service_impl, feedback, TSB, \
     compute_node, map_, TSB_OUT, HgTSTypeMetaData, STATE, TimeSeriesSchema, graph, emit
 
-from hg_oap.assets.currency import Currencies
+from hg_oap.impl.assets.currency import Currencies
 from hg_oap.orders.order import ORDER, OrderState, SingleLegOrder, MultiLegOrder, order_states
 from hg_oap.orders.order_request_response_events import OrderRequest, CreateOrderRequest, OrderResponse, OrderEvent, \
     FillEvent

@@ -8,8 +8,8 @@ from hgraph import merge, operator
 from hgraph.nodes import make_tsd
 from hgraph.test import eval_node
 
-from hg_oap.assets.commodities import Commodity
-from hg_oap.assets.currency import Currencies
+from hg_oap.impl.assets.commodities import Commodity
+from hg_oap.impl.assets.currency import Currencies
 from hg_oap.dates.calendar import WeekendCalendar
 from hg_oap.dates.dgen import roll_bwd, years
 from hg_oap.instruments.future import Settlement, SettlementMethod, FutureContractSpec, FutureContractSeries, \

@@ -2,7 +2,8 @@ from hgraph import subscription_service, TS, TSB, service_impl, TSS, TSD, SCALAR
     default_path, REF, const, map_, graph
 from hgraph.adaptors.data_frame import DATA_FRAME_SOURCE, tsd_k_b_from_data_source, tsd_k_v_from_data_source
 
-from hg_oap.assets.currency import Currency, Currencies
+from hg_oap.assets.currency import Currency
+from hg_oap.impl.assets.currency import Currencies
 from hg_oap.pricing.price import Price
 
 __all__ =("price_mid", "price_mid_table_impl")

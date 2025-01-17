@@ -4,7 +4,7 @@ from hgraph import *
 from hgraph.adaptors.data_frame import *
 from hgraph.test import eval_node
 
-from hg_oap.assets.currency import Currencies
+from hg_oap.impl.assets.currency import Currencies
 from hg_oap.pricing.price import Price
 from hg_oap.pricing.pricing_services import price_mid_table_impl, price_mid
 

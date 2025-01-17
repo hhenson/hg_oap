@@ -2,6 +2,7 @@ from dataclasses import dataclass
 
 from hg_oap.instruments.instrument import Instrument
 from hg_oap.utils import SELF
+from hgraph import TS, TSB, graph
 
 __all__ = ("Index",)
 
@@ -17,3 +18,14 @@ class Index(Instrument):
     Examples:  S&P500, Daily Power Fixings.
     """
     symbol: str
+
+
+@graph
+def cascade(ts: TS[Instrument]) -> TSB[Stream[Instrument]]:
+    return ts
+
+# Replication portfolio
+
+
+#Promptness information
+

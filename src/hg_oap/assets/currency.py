@@ -1,5 +1,4 @@
 from dataclasses import dataclass
-from enum import Enum
 from typing import Optional
 
 from hg_oap.assets.asset import FinancialAsset
@@ -26,14 +25,8 @@ class Currency(FinancialAsset):
             setattr(U, minor_symbol, 1.0/self.minor_currency_ratio * unit)
 
 
-class Currencies(Enum):
-    """The collection of known currencies"""
-    EUR = Currency(symbol="EUR", minor_currency_ratio=100)
-    GBP = Currency(symbol="GBP", minor_currency_ratio=100)
-    USD = Currency(symbol="USD", minor_currency_ratio=100)
-
-
 @compute_node(overloads=cast_)
 def cast_currency(tp: type[Currency], ts: TS[str]) -> TS[Currency]:
     """Cast the string to the currency instance"""
+    from hg_oap.impl.assets.currency import Currencies
     return getattr(Currencies, ts.value.upper()).value
