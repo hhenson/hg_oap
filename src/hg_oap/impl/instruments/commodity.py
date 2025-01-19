@@ -20,4 +20,5 @@ class PhysicalCommodities(Enum):
     CA = PhysicalCommodity("CA", asset=BaseMetals.MCU)
     PB = PhysicalCommodity("PB", asset=BaseMetals.MPB)
     NI = PhysicalCommodity("NI", asset=BaseMetals.MNI)
+    ZN = PhysicalCommodity("ZN", asset=BaseMetals.MZN)
     SN = PhysicalCommodity("SN", asset=BaseMetals.MSN)
