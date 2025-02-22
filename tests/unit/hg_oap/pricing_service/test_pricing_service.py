@@ -117,7 +117,7 @@ def instrument_by_name_impl(key: TSS[str]) -> TSD[str, TSB[Stream[InstrumentData
 
 
 """
-PriceTraits implement scoring filter attributes against instrument attributes.
+PriceTraits implement scoring filter attributes against instrument attributes.  
 They are part of the pricing regime context mappings.
 """
 @dataclass(frozen=True)

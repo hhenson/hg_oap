@@ -62,6 +62,20 @@ def add_timed_value_frames(lhs: TS[Frame[TIMED_VALUE]], rhs: TS[Frame[TIMED_VALU
     )
 
 
+@compute_node(overloads=sub_)
+def sub_timed_value_frames(lhs: TS[Frame[TIMED_VALUE]], rhs: TS[Frame[TIMED_VALUE]]) -> TS[Frame[TIMED_VALUE]]:
+    lhs_value = lhs.value
+    rhs_value = rhs.value
+    if lhs_value.is_empty():
+        return rhs_value.select("timestamp", val=-pl.col("val"))
+    if rhs_value.is_empty():
+        return lhs_value
+
+    return lhs_value.join(rhs_value, on="timestamp", how="inner", suffix="_right").select(
+        "timestamp", pl.col("val") - pl.col("val_right").alias("val")
+    )
+
+
 @compute_node(overloads=mul_)
 def mul_timed_value_frames(lhs: TS[Frame[TIMED_VALUE]], rhs: TS[Frame[TIMED_VALUE_1]]) -> TS[Frame[TIMED_VALUE]]:
     lhs_value = lhs.value

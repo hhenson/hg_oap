@@ -27,6 +27,7 @@ class PriceType(Enum):
     IMPLIED = 6
     MODEL = 7
     FIXED = 8
+    SETTLE = 9
 
 
 @dataclass(frozen=True)
