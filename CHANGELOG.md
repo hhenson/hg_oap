@@ -63,3 +63,8 @@ Version 0.1.11 (15-01-2025)
 --------------------------
 
 * Numerous bug fixes
+
+Version 0.1.12 (22-02-2025)
+---------------------------
+
+* Small bug fixes and added unit tests
