@@ -1,6 +1,11 @@
 import logging
 from typing import Type
 
+from hgraph import subscription_service, TS, graph, service_impl, TSS, TSD, AUTO_RESOLVE, dispatch, type_, \
+    COMPOUND_SCALAR, mesh_, operator, combine, if_then_else, try_except, dedup, compute_node, filter_, log_, str_, \
+    CompoundScalar, switch_, valid, or_, TSB, default, getattr_, SCALAR
+from hgraph.stream.stream import StreamStatus
+
 from hg_oap.instrument_data_service.instrument_data_service import instrument_by_name
 from hg_oap.instruments.instrument import Instrument
 from hg_oap.pricing_service import PricingRegimeContext, delayed_log, combine_errors
@@ -9,10 +14,6 @@ from hg_oap.pricing_service.price import PRICE, PriceType
 from hg_oap.pricing_service.price_mesh_ui import create_price_view, price_row_key, publish_price_row, PriceUIView
 from hg_oap.pricing_service.pricing_model_choice import choose_pricing_model
 from hg_oap.units import Unit
-from hgraph import subscription_service, TS, graph, service_impl, TSS, TSD, AUTO_RESOLVE, dispatch, type_, \
-    COMPOUND_SCALAR, mesh_, operator, combine, if_then_else, try_except, dedup, compute_node, filter_, log_, str_, \
-    CompoundScalar, switch_, valid, or_, TSB, default, getattr_, SCALAR
-from hgraph.stream.stream import StreamStatus
 
 __all__ = ("subscribe_price", "subscribe_price_by_name", "price_service", "pricing_model", "pricing_service_impl")
 
@@ -82,8 +83,8 @@ def pricing_service_impl(
             pricing_model_dispatch = extract_pricing_model_dispatch(pricing_regime_context, price_type)
 
             price_result = try_except(pricing_model_dispatch, instrument, opts, model)
-            price = switch_(key=valid(price_result.exception),
-                           switches={True: _exception_price,
+            price = switch_(valid(price_result.exception),
+                           {True: _exception_price,
                                      False: _no_exception_price},
                            symbol=symbol,
                            model=model,

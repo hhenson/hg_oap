@@ -2,10 +2,11 @@ from dataclasses import dataclass
 from datetime import datetime
 from typing import Tuple
 
-from hg_oap.pricing_service import PRICE, Price, PriceOpts, PricingModel, TimedValue
-from hgraph import operator, TS, TSB, graph, combine, str_, CompoundScalar, switch_, nothing, len_, type_
+from hgraph import operator, TS, TSB, graph, combine, str_, CompoundScalar, type_
 from hgraph.adaptors.perspective import publish_multitable
 from hgraph.stream.stream import Stream
+
+from hg_oap.pricing_service import PRICE, Price, PriceOpts, PricingModel
 
 
 @dataclass(frozen=True, kw_only=True)

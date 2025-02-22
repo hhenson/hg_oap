@@ -8,10 +8,10 @@ from hgraph import merge, operator
 from hgraph.nodes import make_tsd
 from hgraph.test import eval_node
 
-from hg_oap.impl.assets.commodities import Commodity
-from hg_oap.impl.assets.currency import Currencies
 from hg_oap.dates.calendar import WeekendCalendar
 from hg_oap.dates.dgen import roll_bwd, years
+from hg_oap.impl.assets.commodities import Commodity
+from hg_oap.impl.assets.currency import Currencies
 from hg_oap.instruments.future import Settlement, SettlementMethod, FutureContractSpec, FutureContractSeries, \
     CONTRACT_BASE_DATE, Future, month_code
 from hg_oap.instruments.fx import FXSpot
@@ -128,6 +128,7 @@ def convert_price_to_currency_units(price: TSB[Price], currency_unit: TS[Unit]) 
 def calculate_notional(positions: Position[float], currency: TS[Unit]) -> TSB[Quantity]:
     ...
 
+
 @graph(overloads=calculate_notional)
 def calculate_notional_default(positions: Position[float], currency: TS[Unit]) -> TSB[Quantity]:
     return calculate_notional_tsb(TSB[Position[float]].from_ts(
@@ -142,12 +143,14 @@ def calculate_notional_tsb(position: TSB[Position[float]], currency_unit: TS[Uni
     price = get_price(position.instrument.symbol)
     requires_conversion = price.currency_unit != currency_unit
     requires_currency_conversion = price.currency_unit.dimension != currency_unit.dimension
-    price_in_currency = switch_({
-        (True, True): lambda p, c: convert_price_to_currency_units(p, c),
-        (True, False): lambda p, c: TSB[Price[float]].from_ts(qty=convert_units(p.qty, p.currency_unit, c),
-                                                              currency_unit=c, unit=p.unit),
-        (False, False): lambda p, c: p
-    }, combine[TS[tuple[bool, bool]]](requires_currency_conversion, requires_conversion), price, currency_unit)
+    price_in_currency = switch_(
+        combine[TS[tuple[bool, bool]]](requires_currency_conversion, requires_conversion),
+        {
+            (True, True): lambda p, c: convert_price_to_currency_units(p, c),
+            (True, False): lambda p, c: TSB[Price[float]].from_ts(qty=convert_units(p.qty, p.currency_unit, c),
+                                                                  currency_unit=c, unit=p.unit),
+            (False, False): lambda p, c: p
+        }, price, currency_unit)
 
     with position.instrument:
         return TSB[Quantity].from_ts(
@@ -221,7 +224,7 @@ def test_example():
 
     assert eval_node(
         g,
-        #__trace__=dict(start=False, stop=False),
+        # __trace__=dict(start=False, stop=False),
         prices=[None, {
             'GBPUSD': Price[float](qty=1.25, currency_unit=U.USD, unit=U.GBP),
             'USDGBP': Price[float](qty=1 / 1.25, currency_unit=U.GBP, unit=U.USD),

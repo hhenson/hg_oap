@@ -68,3 +68,8 @@ Version 0.1.12 (22-02-2025)
 ---------------------------
 
 * Small bug fixes and added unit tests
+
+Version 0.1.13 (22-02-2025)
+---------------------------
+
+Update to hgraph 0.4.0 and fix switch_ statement use
