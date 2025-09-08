@@ -527,14 +527,14 @@ web = ["pandas", "perspective-python (<4.0.0)", "pycurl", "requests", "tornado"]
 
 [[package]]
 name = "holidays"
-version = "0.77"
+version = "0.80"
 description = "Open World Holidays Framework"
 optional = false
 python-versions = ">=3.9"
 groups = ["main"]
 files = [
-    {file = "holidays-0.77-py3-none-any.whl", hash = "sha256:74e9e7cbf6eca8dfc672b1c2a9b4e64b1b51c428abb880964440e25c2f812486"},
-    {file = "holidays-0.77.tar.gz", hash = "sha256:61c537c7a159d480a1ab07a09ccc602990ecbeed4e2331c75ea46cf0e68b0513"},
+    {file = "holidays-0.80-py3-none-any.whl", hash = "sha256:dbb1c73df2ef248bde09c4de9387e82c3aadc000b081977d255fe662ee889d8e"},
+    {file = "holidays-0.80.tar.gz", hash = "sha256:7bf251d243723d30ef8697fb65e6bf61808a28daf2ecf8a4871f5fbb5be4ba2c"},
 ]
 
 [package.dependencies]
