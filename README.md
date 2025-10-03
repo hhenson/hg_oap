@@ -16,38 +16,51 @@ This library is currently very green and is expected to have significant changes
 
 ## Development
 
-The project is currently configured to make use of [Poetry](https://python-poetry.org) for dependency management. 
-Take a look at the website to see how best to install the tool.
-Once you have checked out the project, you can install the project for development using the following command:
+This project now uses the uv package manager for dependency management and running tasks.
 
-This is optional, but you can ensure python uses the version of python you require.
+- uv homepage and install instructions: https://docs.astral.sh/uv/
 
-```bash
-poetry env use 3.11
-```
+Once you have checked out the project, you can set up a local virtual environment and install dependencies as follows:
 
-Then use the following command to install the project and it's depenencies:
+1) Create or reuse a virtual environment with Python 3.11 (recommended):
 
 ```bash
-poetry install
+uv venv -p 3.11
 ```
 
-Then you can find the location of the installation using:
+2) Activate the virtual environment (example for bash/zsh):
 
 ```bash
-poetry env info
+source .venv/bin/activate
 ```
 
-PyCharm can make use of poetry to ``setup`` the project.
+3) Install the project and all development dependencies (tests, docs, etc.):
+
+```bash
+uv sync --all-extras --all-groups
+```
+
+Notes:
+- `uv sync` reads pyproject.toml and uv.lock and installs the project in editable mode along with dependencies.
+- If you only want runtime dependencies, omit `--all-groups`.
+- If you don't need optional extras, omit `--all-extras`.
+
+To see where the Python interpreter lives for IDE configuration (e.g., PyCharm), after activating the venv you can run:
+
+```bash
+which python
+```
+
+PyCharm can be pointed at the `.venv` interpreter in the project root.
 
 ### Run Tests
 
 ```bash
 # No Coverage
-poetry run pytest
+uv run pytest
 ```
 
 ```bash
 # Generate Coverage Report
-poetry run pytest --cov=your_package_name --cov-report=xml
+uv run pytest --cov=hg_oap --cov-report=xml
 ```
