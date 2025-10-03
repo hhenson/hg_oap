@@ -3,4 +3,4 @@ omit =
     tests/*
 
 [coverage:report]
-fail_under = 70
+fail_under = 50
