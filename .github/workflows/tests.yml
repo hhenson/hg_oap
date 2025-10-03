@@ -31,4 +31,4 @@ jobs:
         run: uv sync --all-extras --all-groups
 
       - name: Run tests
-        run: uv run pytest -ra -q --dist=loadscope --cov=hgraph --cov-report=xml
+        run: uv run pytest -ra -q --dist=loadscope --cov=hg_oap --cov-report=xml
