@@ -25,7 +25,7 @@ def create_price_view(price: PRICE, model: TS[PricingModel]) -> TSB[PriceUIView]
     ...
 
 
-@graph(overloads=create_price_view, requires=lambda m, s: m[PRICE].py_type == TSB[Stream[Price]])
+@graph(overloads=create_price_view, requires=lambda m: m[PRICE].py_type == TSB[Stream[Price]])
 def create_price_view_live(price: PRICE, model: TS[PricingModel]) -> TSB[PriceUIView]:
     return combine[TSB[PriceUIView]](status=price.status_msg,
                                      price=price.val,

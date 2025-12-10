@@ -29,7 +29,7 @@ class CalendarSpreadPricingModel(PricingModel):
     ...
 
 
-@graph(overloads=pricing_model, requires=lambda m, s: m[PRICE].py_type == TSB[Stream[Price]])
+@graph(overloads=pricing_model, requires=lambda m: m[PRICE].py_type == TSB[Stream[Price]])
 def calendar_spread_pricing_model(instrument: TS[CalendarSpread],
                                   opts: TS[PriceOpts],
                                   model: TS[CalendarSpreadPricingModel],
@@ -45,7 +45,7 @@ class MarketDataPricingModel(PricingModel):
     ...
 
 
-@graph(overloads=pricing_model, requires=lambda m, s: m[PRICE].py_type == TSB[Stream[Price]])
+@graph(overloads=pricing_model, requires=lambda m: m[PRICE].py_type == TSB[Stream[Price]])
 def market_data_pricing_model(instrument: TS[Future],
                               opts: TS[PriceOpts],
                               model: TS[MarketDataPricingModel],
