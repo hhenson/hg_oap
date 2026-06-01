@@ -43,4 +43,4 @@ def price_row_key(symbol: TS[str], model: TS[PricingModel], opts: TS[PriceOpts])
 
 @graph
 def publish_price_row(row_key: TS[Tuple[str, str, str]], row_data: TSB[PriceUIView]):
-    publish_multitable("price_mesh", row_key, row_data, unique=True, index_col_name="symbol,model,opts", history=None)
+    publish_multitable("price_mesh", row_key, row_data, unique=True, index_col_name="symbol,model,opts", history=0)

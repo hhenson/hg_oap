@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from datetime import date, time
+from datetime import date, time, datetime
 from enum import Enum
 from typing import Type
 
@@ -54,12 +54,16 @@ class FutureContractSpec(CompoundScalar, ExprClass, UnitConversionContext):
     contract_size: Quantity
     currency: Currency
 
-    trading_calendar: Calendar
+    trading_calendar: Calendar  # Days on which trading happens
+    prompt_calendar: Calendar   # Days for which there are delivery contracts
+
     settlement: Settlement
 
     quotation_currency_unit: Unit
     quotation_unit: Unit
     tick_size: Quantity
+    option_tick_size: Quantity
+    option_strike_price_increments: Quantity
 
     unit_conversion_factors: tuple[Quantity, ...] = lambda self: self.underlying.unit_conversion_factors + (
         self.contract_size / (1.0 * U.lot),
@@ -82,11 +86,20 @@ class FutureContractSeries(CompoundScalar, ExprClass, UnitConversionContext):
 
     first_trading_date: Expression[[date], date]  # given a contract base date, produces the first trading date
     last_trading_date: Expression[[date], date]  # given a contract base date, produces the last trading date
-    last_trading_time: time  # timezone-aware time of last trading on the last trading date
+    last_trading_time: time  # NAIVE time of last trading on the last trading date (no timezone)
+    trading_timezone: str = "UTC"  # Timezone name for last_trading_time (e.g., "CET", "America/New_York")
 
     first_delivery_date: Expression[[date], date]  # given a contract base date, produces the first delivery date
     last_delivery_date: Expression[[date], date]  # given a contract base date, produces the last delivery date
     expiry: Expression[[date], date]  # given a contract base date, produces the expiry date
+
+    # default implementations of option expiry dates and times, can be overridden if necessary
+    option_first_trading_date: Expression[[date], date] = SELF.first_trading_date
+    option_last_trading_date: Expression[[date], date] = SELF.last_trading_date
+    option_last_trading_time: time = SELF.last_trading_time
+    option_expiry: Expression[[date], date] = SELF.option_last_trading_date
+    option_expiry_time: time = SELF.last_trading_time
+    option_strike_price_increments: Quantity = SELF.spec.tick_size
 
 
 CONTRACT_BASE_DATE = lazy(make_dgen)(ParameterOp(_name="CONTRACT_BASE_DATE"))
@@ -96,9 +109,9 @@ CONTRACT_BASE_DATE = lazy(make_dgen)(ParameterOp(_name="CONTRACT_BASE_DATE"))
 MONTH_CODES = ["F", "G", "H", "J", "K", "M", "N", "Q", "U", "V", "X", "Z"]
 
 
-def month_code(d: int | date) -> str:
+def month_code(d: int | date | datetime) -> str:
     # Return the month code corresponding to the month (as a date or a 1-based month number)
-    m = (d.month if type(d) is date else d) - 1
+    m = (d if d.__class__ is int else d.month) - 1
     return MONTH_CODES[m]
 
 
@@ -110,12 +123,10 @@ def month_from_code(code: str) -> int:
 @dataclass(frozen=True, kw_only=True)
 class Future(Instrument):
     SELF: "Future" = SELF
-
     """
-    A standardized legal agreement to buy or sell the underlyer at a predetermined price at a specific time in the
-    future.
+    An exchange-tradable instrument with a standardized legal agreement to buy or sell the underlyer at a 
+    predetermined price at a specific time in the future.
     """
-
     series: FutureContractSeries
     contract_base_date: date
 
@@ -128,11 +139,20 @@ class Future(Instrument):
 
     first_trading_date: date = SELF.series.first_trading_date(CONTRACT_BASE_DATE=SELF.contract_base_date)
     last_trading_date: date = SELF.series.last_trading_date(CONTRACT_BASE_DATE=SELF.contract_base_date)
-    last_trading_time: time = SELF.series.last_trading_time  # Time and timezone of the last trading time
+    last_trading_time: time = SELF.series.last_trading_time  # NAIVE time of last trading (no timezone)
+    trading_timezone: str = SELF.series.trading_timezone  # Timezone name for last_trading_time
 
     first_delivery_date: date = SELF.series.first_delivery_date(CONTRACT_BASE_DATE=SELF.contract_base_date)
     last_delivery_date: date = SELF.series.last_delivery_date(CONTRACT_BASE_DATE=SELF.contract_base_date)
     expiry: date = SELF.series.expiry(CONTRACT_BASE_DATE=SELF.contract_base_date)
+
+    option_first_trading_date: date = SELF.series.option_first_trading_date(CONTRACT_BASE_DATE=SELF.contract_base_date)
+    option_last_trading_date: date = SELF.series.option_last_trading_date(CONTRACT_BASE_DATE=SELF.contract_base_date)
+    option_last_trading_time: time = SELF.series.option_last_trading_time
+    option_expiry: date = SELF.series.option_expiry(CONTRACT_BASE_DATE=SELF.contract_base_date)
+    option_expiry_time: time = SELF.series.option_expiry_time
+    option_tick_size: Quantity = SELF.series.spec.option_tick_size
+    option_strike_price_increments: Quantity = SELF.series.spec.option_strike_price_increments
 
     unit_conversion_factors: tuple[Quantity, ...] = SELF.series.spec.unit_conversion_factors
     trading_calendar: Calendar = SELF.series.spec.trading_calendar

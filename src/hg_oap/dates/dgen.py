@@ -965,7 +965,7 @@ class SubSequenceDGen(DGen):
     def __getitem__(self, item):
         if isinstance(item, int):
             return SubSequenceDGen(
-                self.main_sequence, self.sub_sequence, slice(item, item + 1) if item > 0 else slice(item, item - 1, -1)
+                self.main_sequence, self.sub_sequence, slice(item, item + 1) if item >= 0 else slice(item, item - 1, -1)
             )
         if isinstance(item, slice):
             return SubSequenceDGen(self.main_sequence, self.sub_sequence, item)

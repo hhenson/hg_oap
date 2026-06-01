@@ -304,6 +304,12 @@ def test_date_generator():
         date(2023, 4, 21),
     )
 
+    c = "2025-01-03" <= years.jan < "2027-12-31"
+    assert tuple(d for d in c()) == (
+        date(2026, 1, 1),
+        date(2027, 1, 1),
+    )
+
     # these are third Fridays of Apr
     c = "2020-01-03" <= years.apr.fri[2] < "2023-12-31"
     assert tuple(d for d in c()) == (
@@ -430,3 +436,6 @@ def test_quarters():
 
     m = '2024-01-01' <= quarters.months <= '2025-01-01'
     assert len(list(m())) == 13
+
+    # First day of quarter
+    assert next(('2025-07-30' < quarters)()) == date(2025, 10, 1)

@@ -21,7 +21,7 @@ class Tenor:
 
                     self.ymwd_b = (y, m, w, d, b)
                 else:
-                    raise ValueError(f'"{tenor}" is a invalid tenor string')
+                    raise ValueError(f'"{tenor}" is an invalid tenor string')
             elif type(tenor) is Tenor:
                 self.ymwd_b = tenor.ymwd_b
             elif type(tenor) is timedelta:
@@ -29,7 +29,7 @@ class Tenor:
             elif type(tenor) is tuple and len(tenor) == 5 and all(isinstance(i, int) for i in tenor):
                 self.ymwd_b = tenor
             else:
-                raise ValueError(f'"{tenor}" is a invalid tenor value')
+                raise ValueError(f'"{tenor}" is an invalid tenor value')
         else:
             self.ymwd_b = (y, m, w, d, b)
 

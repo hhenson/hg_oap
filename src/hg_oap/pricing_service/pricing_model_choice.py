@@ -4,27 +4,27 @@ from typing import Type, Tuple
 
 from hg_oap.instruments.instrument import Instrument
 from hg_oap.pricing_service import PriceOpts, PricingModel, PriceTraits, PricingRegimeContext
-from hgraph import compute_node, TS, CompoundScalar, CONTEXT, REQUIRED
+from hgraph import compute_node, TS, CompoundScalar
 
 __all__ = ("choose_pricing_model",)
 
 
 @compute_node
-def choose_pricing_model(instrument: TS[Instrument],
-                         instrument_type: TS[Type[Instrument]],
-                         opts_type: TS[Type[PriceOpts]],
-                         pricing_regime_context: PricingRegimeContext,
-                         path: str,
-                         business_date: CONTEXT[TS[date]] = REQUIRED['business_date']) -> TS[PricingModel]:
+def choose_pricing_model(
+    instrument: TS[Instrument],
+    instrument_type: TS[Type[Instrument]],
+    opts_type: TS[Type[PriceOpts]],
+    pricing_regime_context: PricingRegimeContext,
+    business_date: TS[date],
+    path: str,
+) -> TS[PricingModel]:
 
     instrument = instrument.value
     business_date = business_date.value
-    opts_type = opts_type.value
-    instrument_type = instrument_type.value
 
     best_score = -1
     best_model = None
-    for i_type, o_type in _types(instrument_type, opts_type):
+    for i_type, o_type in _types(instrument_type.value, opts_type.value):
         for traits, model in pricing_regime_context.pricing_model_mapping.items():
             score = traits.score(instrument, i_type, o_type, business_date)
             if score > best_score:
@@ -33,7 +33,7 @@ def choose_pricing_model(instrument: TS[Instrument],
 
     if best_model is None:
         from hg_oap.pricing_service.error_pricing_model import ErrorPricingModel
-        traits = {}
+        traits = {"path": path}
         # TODO - this should be the specific PriceTraits subclass for the instrument
         for field in dataclasses.fields(PriceTraits):
             try:

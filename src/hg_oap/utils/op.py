@@ -815,7 +815,7 @@ class ComprehensionOp(Op):
                 for k, v in ti.items():
                     v.__invoke__(**values)
                 for vals in itertools.product(*ti.values()):
-                    yield {**values, **{k: v for k, v in zip(ti.keys(), vals)}}
+                    yield {**values, **dict(zip(ti.keys(), vals))}
 
         for values in gen(layers):
             yield expr.__invoke__(**values)

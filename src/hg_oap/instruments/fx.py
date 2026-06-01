@@ -41,7 +41,7 @@ class FXForward(Instrument):
 
     base: Currency
     quote: Currency
-    tenor: str  # SPOT, ON, SN, 1W, 2W, 3W, 4W, 1M... 1Y etc
+    tenor: str  # SPOT, ON, SN, 1W, 2W, 3W, 4W, 1M... 1Y, '20251101' etc
 
     currency_unit: Unit = SELF.quote.unit
     unit: Unit = SELF.base.unit

@@ -115,9 +115,9 @@ def div_qty(lhs: TS[Quantity], rhs: TS[Quantity], divide_by_zero: DivideByZero =
         return lhs.value / rhs.value
     except ZeroDivisionError:
         if divide_by_zero is DivideByZero.NAN:
-            return Quantity(qty=float("NaN"), unit=lhs.value.unit/rhs.value.unit)
+            return Quantity(qty=float("NaN"), unit=lhs.value.unit / rhs.value.unit)
         elif divide_by_zero is DivideByZero.INF:
-            return Quantity(qty=float("inf"), unit=lhs.value.unit/rhs.value.unit)
+            return Quantity(qty=float("inf"), unit=lhs.value.unit / rhs.value.unit)
         elif divide_by_zero is DivideByZero.NONE:
             return
         else:

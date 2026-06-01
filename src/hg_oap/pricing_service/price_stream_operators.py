@@ -4,13 +4,13 @@ from typing import Type
 from hg_oap.pricing_service import Price, PRICE, PriceType
 from hg_oap.units import Unit
 from hgraph import (mul_, TSB, TS, NUMBER, compute_node, add_, graph, sub_, div_, combine, TIME_SERIES_TYPE, sink_node,
-                    WiringNodeClass, zero, MIN_DT, SCALAR, AUTO_RESOLVE, DivideByZero)
+                    WiringNodeClass, zero, MIN_DT, SCALAR, AUTO_RESOLVE, DivideByZero, max_)
 from hgraph.stream.stream import Stream, combine_statuses, combine_status_messages, merge_join, StreamStatus
 
 __all__ = ("add_price_stream_number", "sub_price_stream_number", "mul_price_stream_number", "div_price_stream_number",
            "add_two_price_streams", "sub_two_price_streams", "mul_two_price_streams", "div_two_price_streams",
-           "zero_price", "combine_origins", "combine_two_price_streams",
-           "assert_not_equal", "combine_price_types", "combine_timestamps")
+           "zero_price", "combine_origins", "combine_two_price_streams", "assert_equal",
+           "assert_not_equal", "combine_price_types", "combine_timestamps", "combine_units")
 
 
 @graph(overloads=add_)
@@ -81,7 +81,9 @@ def combine_two_price_streams(lhs: PRICE,
 
 @compute_node(valid=())
 def combine_units(lhs: TS[Unit], rhs: TS[Unit]) -> TS[Unit]:
-    return lhs.value if lhs.valid else rhs.value
+    # Units are assumed to be in the LHS units if they are different
+    l = lhs.value
+    return rhs.value if l is None else l
 
 
 @sink_node
@@ -101,14 +103,9 @@ def combine_origins(origin1: TS[str], origin2: TS[str]) -> TS[str]:
     return merge_join(origin1, origin2, separator="/")
 
 
-@compute_node(valid=())
+@graph
 def combine_timestamps(lhs: TS[datetime], rhs: TS[datetime]) -> TS[datetime]:
-    if not lhs.valid:
-        return rhs.value
-    elif not rhs.valid:
-        return lhs.value
-    else:
-        return max(lhs.value.replace(tzinfo=None), rhs.value.replace(tzinfo=None))
+    return max_(lhs, rhs, __strict__=False)
 
 
 @compute_node(valid=())

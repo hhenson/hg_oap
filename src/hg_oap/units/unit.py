@@ -72,12 +72,14 @@ class Unit(CompoundScalar, ExprClass):
 
         if self.dimension is to.dimension:
             return self._do_convert(value, to)
-        elif conversion_factor := UnitSystem.instance().conversion_factor(to.dimension/self.dimension):
+        elif conversion_factor := UnitSystem.instance().conversion_factor(to.dimension / self.dimension):
             converted_value = value * type(value)(conversion_factor.qty)
             converted_units = self * conversion_factor.unit
             return converted_units.convert(converted_value, to)
         else:
-            raise ValueError(f"cannot convert {self} to {to} and no conversion factor for {to.dimension/self.dimension}")
+            raise ValueError(
+                f"cannot convert {self} to {to} and there is no conversion factor for {to.dimension / self.dimension}"
+            )
 
     def is_convertible(self, to: 'Unit') -> bool:
         return (self is to or

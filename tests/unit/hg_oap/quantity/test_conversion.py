@@ -8,6 +8,21 @@ def test_convert_units():
     assert results[-1] == 34.12141633127942
 
 
+def test_convert_units_therms_MWh():
+    results = eval_node(convert_units, qty=[1000.0], fr=[U.therm], to=[U.MWh])
+    assert results[-1] == 29.30710701722222
+
+
+def test_convert_units_MWh_kWh():
+    results = eval_node(convert_units, qty=[1.0], fr=[U.MWh], to=[U.kWh])
+    assert results[-1] == 1000.0
+
+
+def test_convert_units_2():
+    results = eval_node(convert_units, qty=[1.0], fr=[U.MWh], to=[U.kWh])
+    assert results[-1] == 1000.0
+
+
 def test_is_convertible():
     assert U.tonne.is_convertible(U.MWh) == False
     assert U.tonne.is_convertible(U.lot) == False

@@ -30,6 +30,7 @@ class PhysicalAsset(Asset):
     e.g. density for mass/volume
     """
     name: str
+    short_name: str = None
     default_unit: Unit = U.NONE
     unit_conversion_factors: tuple[Quantity, ...] = ()
 

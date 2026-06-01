@@ -1,36 +1,30 @@
-from __future__ import annotations
-
 from dataclasses import dataclass
-from enum import Enum
+from enum import auto, Enum
 from typing import TypeVar
 
+from frozendict import frozendict
+
+from hg_oap.pricing_service import PriceType
+from hg_oap.pricing_service.price_explain import PriceExplain
 from hg_oap.pricing_service.timed_value import TimedValue
 from hg_oap.units import UnitConversionContext, Unit, Quantity
 from hgraph import TSB, COMPOUND_SCALAR
 from hgraph.stream.stream import Stream
 
-__all__ = (
-    "PriceType",
-    "Price",
-    "PRICE",
-)
+__all__ = ("Price", "PRICE", "PriceAttribute")
 
 
-class PriceType(Enum):
-    NONE = -1
-    TRADE = 0
-    MID = 1
-    BID = 2
-    ASK = 3
-    CLOSE = 4
-    FIXING = 5
-    IMPLIED = 6
-    MODEL = 7
-    FIXED = 8
-    SETTLE = 9
+# TODO - extend the behaviour of extended price attributes using enum values - e.g. how to combine them
+class PriceAttribute(Enum):
+    BID = auto()
+    ASK = auto()
+
+    # Greeks
+    DELTA = auto()
+    IMPLIED_VOL = auto()
 
 
-@dataclass(frozen=True)
+@dataclass(frozen=True, kw_only=True)
 class Price(TimedValue, UnitConversionContext):
     """
     Price represents a single price for an instrument at a given time along with metadata to describe it
@@ -42,9 +36,13 @@ class Price(TimedValue, UnitConversionContext):
     price_type: PriceType
     origin: str
     size: float
+    price_explain: PriceExplain
+
+    # Optional extended attributes - e.g. greeks, bid/ask etc
+    price_attributes: frozendict[PriceAttribute, object]
 
     @property
-    def unit_conversion_factors(self) -> tuple[Quantity]:
+    def unit_conversion_factors(self) -> tuple[Quantity, ...]:
         return (self.val * (self.currency_unit / self.unit),)
 
 

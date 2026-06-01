@@ -196,6 +196,7 @@ def test_example():
                 quotation_currency_unit=U.USX,
                 quotation_unit=U.bushel,
                 tick_size=Quantity(0.25, U.USX),
+                option_tick_size=Quantity(0.25, U.USX)
             ),
             name='M',
             symbol_expr=lambda

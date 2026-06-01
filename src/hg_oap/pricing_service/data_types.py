@@ -1,5 +1,8 @@
+from __future__ import annotations
+
 from dataclasses import dataclass
 from datetime import date
+from enum import Enum
 from typing import Type
 
 from hg_oap.instruments.instrument import Instrument
@@ -50,3 +53,19 @@ class PriceTraits:
             return -1
         else:
             return 1
+
+
+class PriceType(Enum):
+    NONE = -1
+    TRADE = 0
+    MID = 1
+    BID = 2
+    ASK = 3
+    CLOSE = 4
+    FIXING = 5
+    IMPLIED = 6
+    MODEL = 7
+    FIXED = 8
+    SETTLE = 9
+    FAIR_VALUE = 10
+    OVERRIDE = 11

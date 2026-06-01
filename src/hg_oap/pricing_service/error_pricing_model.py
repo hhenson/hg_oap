@@ -3,6 +3,7 @@ from typing import Type
 
 from frozendict import frozendict
 
+from ace.domain.instruments.error_instrument import ErrorInstrument
 from hg_oap.instruments.instrument import Instrument
 from hg_oap.pricing_service import PRICE, PriceOpts, PricingModel, PriceType
 from hg_oap.pricing_service.price_service import pricing_model
@@ -23,15 +24,29 @@ def pricing_model_error(instrument: TS[Instrument],
                         opts: TS[PriceOpts],
                         model: TS[ErrorPricingModel],
                         price_type: Type[PRICE] = AUTO_RESOLVE) -> PRICE:
-    status_msg = format_("No model for {}, {}  ({}, traits {})",
+    status_msg = format_("No model for {} of type {}({}) with opts type {}  ({})",
                          instrument.symbol,
-                         type_(opts).name,
                          type_(instrument).name,
+                         getattr_(instrument, "error", ""),  # ErrorInstrument will produce the error
+                         type_(opts).name,
                          model.traits)
     return combine[price_type](status=StreamStatus.ERROR,
                                status_msg=status_msg,
                                unit=getattr_[SCALAR: Unit](instrument, "unit"),
                                currency_unit=getattr_[SCALAR: Unit](instrument, "currency_unit"),
+                               origin="error",
+                               price_type=PriceType.NONE,
+                               timestamp=last_modified_time(status_msg))
+
+
+@graph(overloads=pricing_model)
+def pricing_model_error(instrument: TS[ErrorInstrument],
+                        opts: TS[PriceOpts],
+                        model: TS[ErrorPricingModel],
+                        price_type: Type[PRICE] = AUTO_RESOLVE) -> PRICE:
+    status_msg = format_("Cannot price {}: {}", instrument.symbol, instrument.error)
+    return combine[price_type](status=StreamStatus.ERROR,
+                               status_msg=status_msg,
                                origin="error",
                                price_type=PriceType.NONE,
                                timestamp=last_modified_time(status_msg))

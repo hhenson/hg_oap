@@ -86,5 +86,7 @@ U.lot = PrimaryUnit(dimension=U.contracts)
 
 U.money = PrimaryDimension()
 
+U.countable = PrimaryDimension()
+
 # Sentinel to indicate a value with no units
 U.NONE = PrimaryUnit(dimension=U.dimensionless)
