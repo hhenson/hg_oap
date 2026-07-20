@@ -11,6 +11,7 @@ std_prefixes = {'k': 1000.0, 'M': 1_000_000.0, 'G': 1_000_000_000.0, 'T': 1_000_
                 'c': 0.01, 'm': 0.001, 'u': 0.000_001, 'n': 0.000_000_001, 'p': 0.000_000_000_001}
 
 U = UnitSystem(__prefixes__=std_prefixes)
+UnitSystem.__default__ = U
 U.register()  # If this has been imported we can go ahead and register it.
 
 U.length = PrimaryDimension()

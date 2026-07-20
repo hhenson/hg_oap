@@ -1,3 +1,4 @@
+import inspect
 import logging
 from typing import Type
 
@@ -5,6 +6,7 @@ from hgraph import subscription_service, TS, graph, service_impl, TSS, TSD, AUTO
     COMPOUND_SCALAR, mesh_, operator, combine, if_then_else, try_except, dedup, compute_node, filter_, log_, str_, \
     CompoundScalar, switch_, valid, or_, TSB, default, getattr_, SCALAR
 from hgraph.stream.stream import StreamStatus
+from hgraph.reflection import operator_overloads, scalar_type
 
 from hg_oap.instrument_data_service.instrument_data_service import instrument_by_name
 from hg_oap.instruments.instrument import Instrument
@@ -145,10 +147,17 @@ def extract_pricing_model_dispatch(pricing_regime_context, price_type):
     from hg_oap.pricing_service.error_pricing_model import ErrorPricingModel
     models_in_use = {m.__class__ for m in pricing_regime_context.pricing_model_mapping.values()}
     models_in_use.add(ErrorPricingModel)
-    overloads_in_use = [o
-                        for o, r in pricing_model.overload_list.overloads
-                        if any(issubclass(m, o.signature.input_types["model"].value_scalar_tp.py_type)
-                               for m in models_in_use)]
+    overloads_in_use = [
+        overload
+        for overload in operator_overloads(pricing_model)
+        if any(
+            issubclass(
+                model,
+                scalar_type(inspect.signature(overload).parameters["model"].annotation),
+            )
+            for model in models_in_use
+        )
+    ]
 
     def _pricing_model(instrument: TS[Instrument], opts: TS[PriceOpts], model: TS[PricingModel]) -> PRICE:
         ...

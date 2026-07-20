@@ -4,7 +4,7 @@ from typing import ClassVar, TypeVar
 
 import polars as pl
 
-from hgraph import CompoundScalar, NUMBER, clone_type_var, TimeSeriesSchema, MIN_DT
+from hgraph import CompoundScalar, NUMBER, TimeSeriesSchema, MIN_DT
 
 __all__ = ("TimedValue", "TIMED_VALUE", "TIMED_VALUE_1", "TIMED_VALUE_BUNDLE")
 
@@ -59,5 +59,5 @@ TimedValue.null_frame = pl.DataFrame({})
 
 
 TIMED_VALUE = TypeVar("TIMED_VALUE", bound=TimedValue)
-TIMED_VALUE_1 = clone_type_var(TIMED_VALUE, "TIMED_VALUE_1")
+TIMED_VALUE_1 = TypeVar("TIMED_VALUE_1", bound=TimedValue)
 TIMED_VALUE_BUNDLE = TypeVar("TIMED_VALUE_BUNDLE", bound=TimeSeriesSchema.from_scalar_schema(TimedValue))

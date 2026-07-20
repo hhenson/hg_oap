@@ -1,7 +1,7 @@
-from dataclasses import dataclass
-from typing import TypeVar, Any, cast, Generic
+from dataclasses import dataclass, fields
+from typing import TypeVar, Any, Generic
 
-from hgraph import CompoundScalar, HgScalarTypeMetaData, HgScalarTypeVar
+from hgraph import CompoundScalar
 
 from hg_oap.instruments.instrument import Instrument
 from hg_oap.pricing.price import Price
@@ -56,7 +56,7 @@ class MultiLegOrderType(OrderType):
     @property
     def leg_ids(self) -> tuple[str, ...]:
         """The leg ids of this order type instance"""
-        return tuple(k for k, v in self._schema_items() if is_order_type(v))
+        return tuple(f.name for f in fields(self) if is_order_type(getattr(self, f.name)))
 
 
 @dataclass(frozen=True)
@@ -98,10 +98,7 @@ def is_order_type(v: Any) -> bool:
     """Indicates if the value provide represents an order type or not."""
     if isinstance(v, type):
         return issubclass(v, OrderType)
-    elif isinstance(v, HgScalarTypeMetaData):
-        if type(v) is HgScalarTypeVar:
-            return (b := cast(TypeVar, v.py_type).__bound__) and issubclass(b, OrderType)
-    else:
-        return isinstance(v, OrderType)
-
+    if isinstance(v, TypeVar):
+        return bool((bound := v.__bound__) and issubclass(bound, OrderType))
+    return isinstance(v, OrderType)
 

@@ -2,7 +2,7 @@ from dataclasses import dataclass
 from datetime import date
 from typing import Type
 
-from hg_oap.assets.asset import PhysicalAsset
+from hg_oap.impl.assets.commodities import Commodity
 from hg_oap.impl.assets.currency import Currencies
 from hg_oap.dates import WeekendCalendar, months
 from hg_oap.instrument_data_service.instrument_data_service import instrument_by_name, InstrumentData
@@ -19,6 +19,7 @@ from hgraph import graph, TS, const, register_service, TSB, WiringGraphContext, 
     getattr_, SCALAR, service_impl, TSS, TSD, map_, compute_node
 from hgraph.stream.stream import Stream, StreamStatus
 from hgraph.test import eval_node
+from hgraph.reflection import resolved_type
 
 """
 Sample pricing models.  The PricingModel subclass may define parameters which govern the behaviour of the pricing model.
@@ -29,7 +30,7 @@ class CalendarSpreadPricingModel(PricingModel):
     ...
 
 
-@graph(overloads=pricing_model, requires=lambda m: m[PRICE].py_type == TSB[Stream[Price]])
+@graph(overloads=pricing_model, requires=lambda m: resolved_type(m[PRICE]) == TSB[Stream[Price]])
 def calendar_spread_pricing_model(instrument: TS[CalendarSpread],
                                   opts: TS[PriceOpts],
                                   model: TS[CalendarSpreadPricingModel],
@@ -45,7 +46,7 @@ class MarketDataPricingModel(PricingModel):
     ...
 
 
-@graph(overloads=pricing_model, requires=lambda m: m[PRICE].py_type == TSB[Stream[Price]])
+@graph(overloads=pricing_model, requires=lambda m: resolved_type(m[PRICE]) == TSB[Stream[Price]])
 def market_data_pricing_model(instrument: TS[Future],
                               opts: TS[PriceOpts],
                               model: TS[MarketDataPricingModel],
@@ -59,7 +60,7 @@ def market_data_pricing_model(instrument: TS[Future],
                                        price_type=PriceType.MID,
                                        origin="some market data source")
 
-class Gas(PhysicalAsset):
+class Gas(Commodity):
     ...
 
 

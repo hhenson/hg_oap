@@ -3,12 +3,20 @@ from dataclasses import dataclass
 import pytest
 
 from hg_oap.units.dimension import PrimaryDimension, DerivedDimension
+from hg_oap.units.default_unit_system import U as DEFAULT_UNIT_SYSTEM
 from hg_oap.units.quantity import Quantity
-from hg_oap.units.unit import PrimaryUnit, DerivedUnit, OffsetDerivedUnit
+from hg_oap.units.unit import PrimaryUnit, DerivedUnit, OffsetDerivedUnit, ComplexUnit
 from hg_oap.units.unit import Unit
 from hg_oap.units.unit_system import UnitSystem, UnitConversionContext
 from hg_oap.utils.exprclass import ExprClass
 from hgraph import CompoundScalar
+
+
+def test_default_unit_system_is_restored_after_context():
+    with UnitSystem() as temporary:
+        assert UnitSystem.instance() is temporary
+
+    assert UnitSystem.instance() is DEFAULT_UNIT_SYSTEM
 
 
 def test_units():
@@ -60,6 +68,7 @@ def test_unit_conversion_1():
         assert U.meter.convert(100., to=U.meter) == 100.
 
         U.cm = DerivedUnit(primary_unit=U.meter, ratio=0.01)
+        assert DerivedUnit(primary_unit=U.meter, ratio=0.01) is U.cm
 
         assert U.cm.convert(100., to=U.meter) == 1.
         assert U.cm.convert(100.0, to=U.meter) == 1.
@@ -106,6 +115,10 @@ def test_offset_units():
         U.temperature = PrimaryDimension()
         U.kelvin = PrimaryUnit(dimension=U.temperature)
         U.celsius = OffsetDerivedUnit(primary_unit=U.kelvin, ratio=1.0, offset=273.15)
+        assert OffsetDerivedUnit(primary_unit=U.kelvin, ratio=1.0, offset=273.15) is U.celsius
+
+        scaled = ComplexUnit(components=((U.kelvin, 1),), scale=1_000.0)
+        assert ComplexUnit(components=((U.kelvin, 1),), scale=1_000.0) is scaled
 
         assert U.celsius.convert(0., to=U.celsius) == 0.
         assert U.kelvin.convert(273.15, to=U.kelvin) == 273.15

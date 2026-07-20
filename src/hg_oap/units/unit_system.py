@@ -12,6 +12,7 @@ __all__ = ("UnitSystem", "UnitConversionContext")
 @dataclass
 class UnitSystem:
     __instance__: ClassVar['UnitSystem'] = None
+    __default__: ClassVar['UnitSystem'] = None
 
     __dimensions__: dict[str, "Dimension"] = field(default_factory=dict)
     __derived_dimensions__: dict[tuple[tuple["Dimension", int], ...], "Dimension"] = field(default_factory=dict)
@@ -25,8 +26,8 @@ class UnitSystem:
 
     @staticmethod
     def instance():
-        if UnitSystem.__instance__ is None and UnitSystem.__default__ is not None:
-            UnitSystem.__instance__ = U
+        if UnitSystem.__instance__ is None:
+            UnitSystem.__instance__ = UnitSystem.__default__
         return UnitSystem.__instance__
 
     def register(self):

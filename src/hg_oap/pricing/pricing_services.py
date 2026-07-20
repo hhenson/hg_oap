@@ -1,4 +1,4 @@
-from hgraph import subscription_service, TS, TSB, service_impl, TSS, TSD, SCALAR, TS_SCHEMA, drop_dups, cast_, SCALAR_1, \
+from hgraph import subscription_service, TS, TSB, service_impl, TSS, TSD, TS_SCHEMA, drop_dups, cast_, \
     default_path, REF, const, map_, graph
 from hgraph.adaptors.data_frame import DATA_FRAME_SOURCE, tsd_k_b_from_data_source, tsd_k_v_from_data_source
 
@@ -52,7 +52,7 @@ def price_mid_table_impl(
         with the static currency.
     """
     if static_currency:
-        values = tsd_k_v_from_data_source[SCALAR: str, SCALAR_1: float](data_frame_source, date_col, instrument_id_col)
+        values = tsd_k_v_from_data_source(data_frame_source, date_col, instrument_id_col)
         clean_up = map_(
             _clean_up_static_currency,
             price=values,
@@ -60,7 +60,7 @@ def price_mid_table_impl(
         )
         return clean_up
     else:
-        values = tsd_k_b_from_data_source[SCALAR: str](data_frame_source, date_col, instrument_id_col)
+        values = tsd_k_b_from_data_source(data_frame_source, date_col, instrument_id_col)
         clean_up = map_(
             _clean_up_dynamic_currency,
             price=values,

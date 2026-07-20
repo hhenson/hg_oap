@@ -4,7 +4,7 @@ from typing import Type
 from hg_oap.pricing_service import Price, PRICE, PriceType
 from hg_oap.units import Unit
 from hgraph import (mul_, TSB, TS, NUMBER, compute_node, add_, graph, sub_, div_, combine, TIME_SERIES_TYPE, sink_node,
-                    WiringNodeClass, zero, MIN_DT, SCALAR, AUTO_RESOLVE, DivideByZero)
+                    zero, MIN_DT, SCALAR, AUTO_RESOLVE, DivideByZero)
 from hgraph.stream.stream import Stream, combine_statuses, combine_status_messages, merge_join, StreamStatus
 
 __all__ = ("add_price_stream_number", "sub_price_stream_number", "mul_price_stream_number", "div_price_stream_number",
@@ -135,7 +135,7 @@ def combine_price_types(lhs: TS[PriceType], rhs: TS[PriceType]) -> TS[PriceType]
 
 
 @graph(overloads=zero)
-def zero_price(tp: Type[TSB[Stream[Price]]], op: WiringNodeClass) -> TSB[Stream[Price]]:
+def zero_price(tp: Type[TSB[Stream[Price]]], op: object) -> TSB[Stream[Price]]:
     return combine[tp](status=StreamStatus.OK,
                       status_msg="",
                       val=0.0,
