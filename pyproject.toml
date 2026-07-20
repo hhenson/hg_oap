@@ -23,8 +23,8 @@ classifiers = [
 ]
 requires-python = ">=3.12"
 dependencies = [
-    "hgraph[web]>=0.5.25",
-    #"hg_cpp[web]==0.4.0rc2",
+    #"hgraph[web]>=0.5.25",
+    "hg_cpp[web]==0.4.1",
     "holidays >=0.56",
     "polars>=1.32",
 ]
@@ -64,7 +64,7 @@ build-backend = "hatchling.build"
 # Configure pytest
 [tool.pytest.ini_options]
 minversion = "7.4.3"
-adopts = "-s" #addopts = "-n 4 -ra -q --dist=loadscope" # " --cov=hgraph --cov-report=term-missing --cov-report=xml"
+addopts = "-s" #addopts = "-n 4 -ra -q --dist=loadscope" # " --cov=hgraph --cov-report=term-missing --cov-report=xml"
 testpaths = [
     "tests",
 ]
