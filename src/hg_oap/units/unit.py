@@ -163,7 +163,7 @@ class DerivedUnit(Unit):
             ratio *= primary_unit.ratio
             primary_unit = primary_unit.primary_unit
 
-        if d := UnitSystem.instance().__derived_units__.get((id(primary_unit), ratio)):
+        if d := UnitSystem.instance().__derived_units__.get((primary_unit, ratio)):
             return d
 
         n = super().__new__(cls)
@@ -232,7 +232,7 @@ class OffsetDerivedUnit(DerivedUnit):
         if prefixes:
             object.__setattr__(n, 'prefixes', prefixes)
 
-        UnitSystem.instance().__derived_units__[(id(primary_unit), ratio, offset)] = n
+        UnitSystem.instance().__derived_units__[(primary_unit, ratio, offset)] = n
         return n
 
     def __add__(self, other):
@@ -306,15 +306,18 @@ class ComplexUnit(Unit):
     ratio: float = lambda s: reduce(operator.mul, (pow(u.ratio, m) for u, m in s.components)) * s.scale
     name: str = lambda s: s._build_name()
 
-    def __new__(cls, components, name=None, prefixes=None):
+    def __new__(cls, components, name=None, prefixes=None, scale=None):
         from hg_oap.units.quantity import Quantity
         if isinstance(components, Quantity):
+            if scale is not None:
+                raise TypeError("scale cannot be supplied with Quantity components")
             scale = components.qty
             components = components.unit._to_components()
-        else:
-            scale = None
 
-        lookup_key = tuple((id(u), p) for u, p in components) + ((scale,) if scale is not None else ())
+        effective_scale = 1.0 if scale is None else scale
+        lookup_key = tuple((id(u), p) for u, p in components) + (
+            (effective_scale,) if effective_scale != 1.0 else ()
+        )
         if d := UnitSystem.instance().__complex_units__.get(lookup_key):
             return d
 
@@ -323,8 +326,8 @@ class ComplexUnit(Unit):
         n = super().__new__(cls)
         object.__setattr__(n, 'components', components)
 
-        if scale is not None:
-            object.__setattr__(n, 'scale', scale)
+        if effective_scale != 1.0:
+            object.__setattr__(n, 'scale', effective_scale)
 
         if name:
             object.__setattr__(n, 'name', name)

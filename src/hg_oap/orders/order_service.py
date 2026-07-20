@@ -1,10 +1,11 @@
 from collections import defaultdict
 from dataclasses import dataclass, field
-from typing import Any, cast
+from typing import Any
 
 from frozendict import frozendict
 from hgraph import request_reply_service, TSD, TS, service_impl, feedback, TSB, \
-    compute_node, map_, TSB_OUT, HgTSTypeMetaData, STATE, TimeSeriesSchema, graph, emit
+    compute_node, map_, TSB_OUT, STATE, TimeSeriesSchema, graph, emit
+from hgraph.reflection import dereference, is_ts, value_type
 
 from hg_oap.impl.assets.currency import Currencies
 from hg_oap.orders.order import ORDER, OrderState, SingleLegOrder, MultiLegOrder, order_states
@@ -75,17 +76,19 @@ def order_handler(fn):
           set as it will cause the code to be re-evaluated the engine cycle after the node is completed.
     """
     # determine type or order state we are looking for based on the wrapped code.
-    from hgraph import PythonWiringNodeClass
-    signature = cast(PythonWiringNodeClass, fn).signature
-    needs_map: bool = isinstance(signature.input_types['request'], HgTSTypeMetaData)
+    signature = fn.signature
+    needs_map = is_ts(signature.input_types['request'])
     if needs_map:
-        bundle_tp = signature.input_types['order_state']
+        bundle_tp = dereference(signature.input_types['order_state'])
     else:
-        bundle_tp = signature.input_types['order_state'].value_tp
+        bundle_tp = value_type(signature.input_types['order_state'])
 
-    order_state_tp = bundle_tp.bundle_schema_tp.meta_data_schema['requested'].bundle_schema_tp.py_type
-    assert order_state_tp in (SingleLegOrder, MultiLegOrder), \
-        "Expect this to be either a SingleLegOrder or MultiLegOrder"
+    if bundle_tp == TSB[OrderState[SingleLegOrder]]:
+        order_state_tp = SingleLegOrder
+    elif bundle_tp == TSB[OrderState[MultiLegOrder]]:
+        order_state_tp = MultiLegOrder
+    else:
+        raise TypeError("order_state must contain SingleLegOrder or MultiLegOrder")
 
     @service_impl(interfaces=(order_states, order_client))
     def _order_handler_impl(path: str):
@@ -208,7 +211,7 @@ def __compute_order_state_single(
             order_responses = responses.order_responses.value
             order_responses = {response.version: response for response in order_responses}
             _state.pending_requests = [request for request in _state.pending_requests if
-                                       request.version not in responses]
+                                       request.version not in order_responses]
             # Apply responses to confirmed state
             for response in order_responses.values():
                 confirmed, delta = apply_confirmation(confirmed, response)

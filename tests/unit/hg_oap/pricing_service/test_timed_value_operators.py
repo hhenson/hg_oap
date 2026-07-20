@@ -32,7 +32,7 @@ def test_add_timed_value_frames(lhs, rhs):
     expected = pl.DataFrame({"timestamp": [datetime(2024, 7, 28), datetime(2024, 7, 29)], "val": [2.5, 4.5]})
 
     out = eval_node(g, [lhs], [rhs])
-    assert_frame_equal(out[0], expected)
+    assert_frame_equal(pl.from_arrow(out[0]), expected)
 
 
 def test_mul_timed_value_frames(lhs, rhs):
@@ -43,7 +43,7 @@ def test_mul_timed_value_frames(lhs, rhs):
     expected = pl.DataFrame({"timestamp": [datetime(2024, 7, 28), datetime(2024, 7, 29)], "val": [1.5, 5.0]})
 
     out = eval_node(g, [lhs], [rhs])
-    assert_frame_equal(out[0], expected)
+    assert_frame_equal(pl.from_arrow(out[0]), expected)
 
 
 def test_mul_timed_value_frame(lhs):
@@ -54,7 +54,7 @@ def test_mul_timed_value_frame(lhs):
     expected = pl.DataFrame({"timestamp": [datetime(2024, 7, 28), datetime(2024, 7, 29)], "val": [2.0, 4.0]})
 
     out = eval_node(g, [lhs], [2.0])
-    assert_frame_equal(out[0], expected)
+    assert_frame_equal(pl.from_arrow(out[0]), expected)
 
 
 def test_div_timed_value_frame(lhs):
@@ -65,7 +65,7 @@ def test_div_timed_value_frame(lhs):
     expected = pl.DataFrame({"timestamp": [datetime(2024, 7, 28), datetime(2024, 7, 29)], "val": [0.5, 1.0]})
 
     out = eval_node(g, [lhs], [2.0])
-    assert_frame_equal(out[0], expected)
+    assert_frame_equal(pl.from_arrow(out[0]), expected)
 
 
 def test_sub_timed_value_frame(lhs, rhs):
@@ -76,7 +76,7 @@ def test_sub_timed_value_frame(lhs, rhs):
     expected = pl.DataFrame({"timestamp": [datetime(2024, 7, 28), datetime(2024, 7, 29)], "val": [-0.5, -0.5]})
 
     out = eval_node(g, [lhs], [rhs])
-    assert_frame_equal(out[0], expected)
+    assert_frame_equal(pl.from_arrow(out[0]), expected)
 
 
 def test_sub_timed_value_frame_empty_lhs(rhs):
@@ -87,7 +87,7 @@ def test_sub_timed_value_frame_empty_lhs(rhs):
     expected = pl.DataFrame({"timestamp": [datetime(2024, 7, 28), datetime(2024, 7, 29)], "val": [-1.5, -2.5]})
 
     out = eval_node(g, [pl.DataFrame()], [rhs])
-    assert_frame_equal(out[0], expected)
+    assert_frame_equal(pl.from_arrow(out[0]), expected)
 
 
 def test_sub_timed_value_frame_empty_rhs(lhs):
@@ -98,4 +98,4 @@ def test_sub_timed_value_frame_empty_rhs(lhs):
     expected = pl.DataFrame({"timestamp": [datetime(2024, 7, 28), datetime(2024, 7, 29)], "val": [1.0, 2.0]})
 
     out = eval_node(g, [lhs], [pl.DataFrame()])
-    assert_frame_equal(out[0], expected)
+    assert_frame_equal(pl.from_arrow(out[0]), expected)

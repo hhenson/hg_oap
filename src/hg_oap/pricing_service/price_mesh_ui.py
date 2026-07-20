@@ -5,6 +5,7 @@ from typing import Tuple
 from hgraph import operator, TS, TSB, graph, combine, str_, CompoundScalar, type_
 from hgraph.adaptors.perspective import publish_multitable
 from hgraph.stream.stream import Stream
+from hgraph.reflection import resolved_type
 
 from hg_oap.pricing_service import PRICE, Price, PriceOpts, PricingModel
 
@@ -25,7 +26,7 @@ def create_price_view(price: PRICE, model: TS[PricingModel]) -> TSB[PriceUIView]
     ...
 
 
-@graph(overloads=create_price_view, requires=lambda m: m[PRICE].py_type == TSB[Stream[Price]])
+@graph(overloads=create_price_view, requires=lambda m: resolved_type(m[PRICE]) == TSB[Stream[Price]])
 def create_price_view_live(price: PRICE, model: TS[PricingModel]) -> TSB[PriceUIView]:
     return combine[TSB[PriceUIView]](status=price.status_msg,
                                      price=price.val,
