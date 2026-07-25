@@ -22,7 +22,7 @@ jobs:
         run: |
           # Get the tag name without the leading 'v_'
           VERSION=${GITHUB_REF#refs/tags/v_}
-          echo "version=$VERSION" >> $GITHUB_ENV
+          echo "VERSION=$VERSION" >> "$GITHUB_ENV"
           CURRENT_VERSION=$(grep "^version =" pyproject.toml | cut -d'"' -f2)
 
           # Check if the version needs to be updated
@@ -35,32 +35,31 @@ jobs:
 
           cat pyproject.toml | grep version
 
-      - name: Commit Version Update
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          # Check if there are changes to commit
-          if git diff --quiet pyproject.toml; then
-            echo "No changes detected in pyproject.toml. Skipping commit and push."
-          else
-            echo "Changes detected in pyproject.toml. Committing and pushing..."
-            git config --local user.name "github-actions"
-            git config --local user.email "github-actions@github.com"
-            git add pyproject.toml
-            git commit -m "Update version to $VERSION based on tag"
-            git push origin HEAD:main
-          fi
-
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
-          python-version: '3.11'
+          python-version: '3.12'
 
       - name: Ensure latest pip
         run: python -m pip install --upgrade pip
 
       - name: Install uv
         run: pip install uv
+
+      - name: Commit Version Update
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          uv lock
+          if git diff --quiet pyproject.toml uv.lock; then
+            echo "No version changes detected. Skipping commit and push."
+          else
+            git config --local user.name "github-actions"
+            git config --local user.email "github-actions@github.com"
+            git add pyproject.toml uv.lock
+            git commit -m "Update version to $VERSION based on tag"
+            git push origin HEAD:main
+          fi
 
       - name: Install dependencies
         run: |
