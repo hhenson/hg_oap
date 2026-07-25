@@ -1,8 +1,8 @@
 from dataclasses import dataclass
 
 from hg_oap.instruments.instrument import Instrument
-from hg_oap.stream import Stream
 from hgraph import TS, TSB, subscription_service
+from hgraph.stream import Stream
 
 
 @dataclass(frozen=True)

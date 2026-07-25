@@ -17,7 +17,7 @@ from hg_oap.units import Unit, Quantity
 from hg_oap.units.default_unit_system import U
 from hgraph import graph, TS, const, register_service, TSB, WiringGraphContext, AUTO_RESOLVE, combine, MIN_DT, \
     getattr_, SCALAR, service_impl, TSS, TSD, map_, compute_node
-from hg_oap.stream import Stream, StreamStatus
+from hgraph.stream import Stream, StreamStatus
 from hgraph.test import eval_node
 from hgraph.reflection import resolved_type
 

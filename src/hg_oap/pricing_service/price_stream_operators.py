@@ -2,7 +2,7 @@ from datetime import datetime
 from typing import Type
 
 from hg_oap.pricing_service import Price, PRICE, PriceType
-from hg_oap.stream import (
+from hgraph.stream import (
     Stream,
     StreamStatus,
     combine_status_messages,

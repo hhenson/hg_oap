@@ -1,6 +1,6 @@
 from dataclasses import dataclass
 from datetime import date, time
-from typing import TypeVar
+from typing import Generic, TypeVar
 
 from hgraph import TSB, TSD, Frame, graph, TS, map_, add_, switch_, compute_node, subscription_service, \
     request_reply_service, service_impl, register_service, combine, sample, flip, dedup, const
@@ -20,7 +20,7 @@ from hg_oap.instruments.physical import PhysicalCommodity
 from hg_oap.quanity.conversion import convert_units
 from hg_oap.units.default_unit_system import U
 from hg_oap.units.quantity import Quantity
-from hg_oap.units.unit import Unit
+from hg_oap.units.unit import Unit, NUMBER
 from hg_oap.units.unit_system import UnitConversionContext
 from hg_oap.utils import SELF, ExprClass
 
@@ -70,13 +70,13 @@ POSITIONS = TypeVar('POSITIONS', Position, Frame[Position], TSD[str, TSB[Quantit
 
 
 @dataclass(frozen=True)
-class Price(ExprClass, UnitConversionContext):
+class Price(Generic[NUMBER], ExprClass, UnitConversionContext):
     """
     Price is a triplet of quantity, unit and currency unit, representing the price in the
     units of the currency unit per unit of the thing being priced, for example a triplet of
     (600, USX, bushel) would represent a price of 600 US cents per bushel or 6 dollars per bushel
     """
-    qty: float
+    qty: NUMBER
     currency_unit: Unit
     unit: Unit
 
@@ -84,12 +84,12 @@ class Price(ExprClass, UnitConversionContext):
 
 
 @subscription_service
-def get_price(instrument: TS[INSTRUMENT_ID], path: str = "price_service") -> TSB[Price]:
+def get_price(instrument: TS[INSTRUMENT_ID], path: str = "price_service") -> TSB[Price[float]]:
     ...
 
 
 @request_reply_service
-def submit_price(instrument: TS[INSTRUMENT_ID], price: TSB[Price], path: str = "price_service"):
+def submit_price(instrument: TS[INSTRUMENT_ID], price: TSB[Price[float]], path: str = "price_service"):
     ...
 
 
@@ -111,14 +111,12 @@ def fx_rate_symbol(fr: TS[Unit], to: TS[Unit]) -> TS[str]:
     return f"{fr.value.primary_unit}{to.value.primary_unit}"  # FX rate naming convention is weird
 
 
-def convert_price_to_currency_units(
-    price: TSB[Price], currency_unit: TS[Unit]
-) -> TSB[Price]:
+def convert_price_to_currency_units(price: TSB[Price], currency_unit: TS[Unit]) -> TSB[Price]:
     # here the FXSpot instrument provides a property unit_conversion_factors which contains a Quantity
     # in units of to_currency_unit per from_currency_unit
     with get_price(fx_rate_symbol(price.currency_unit, currency_unit)):
-        return TSB[Price].from_ts(qty=convert_units(price.qty, price.currency_unit, currency_unit),
-                                  currency_unit=currency_unit, unit=price.unit)
+        return TSB[Price[float]].from_ts(qty=convert_units(price.qty, price.currency_unit, currency_unit),
+                                         currency_unit=currency_unit, unit=price.unit)
 
 
 ###################################################
@@ -146,8 +144,8 @@ def calculate_notional_tsb(position: TSB[Position], currency_unit: TS[Unit]) -> 
         combine[TS[tuple[bool, bool]]](requires_currency_conversion, requires_conversion),
         {
             (True, True): lambda p, c: convert_price_to_currency_units(p, c),
-            (True, False): lambda p, c: TSB[Price].from_ts(qty=convert_units(p.qty, p.currency_unit, c),
-                                                           currency_unit=c, unit=p.unit),
+            (True, False): lambda p, c: TSB[Price[float]].from_ts(qty=convert_units(p.qty, p.currency_unit, c),
+                                                                  currency_unit=c, unit=p.unit),
             (False, False): lambda p, c: p
         }, price, currency_unit)
 
@@ -177,7 +175,7 @@ class Agricultural(Commodity):
 
 def test_example():
     @graph
-    def g(prices: TSD[str, TSB[Price]]) -> TS[Quantity]:
+    def g(prices: TSD[str, TSB[Price[float]]]) -> TS[Quantity]:
         register_service("price_service", price_service)
         register_service("instrument_service", instrument_service)
 
@@ -225,7 +223,7 @@ def test_example():
         g,
         # __trace__=dict(start=False, stop=False),
         prices=[None, {
-            'GBPUSD': Price(qty=1.25, currency_unit=U.USD, unit=U.GBP),
-            'USDGBP': Price(qty=1 / 1.25, currency_unit=U.GBP, unit=U.USD),
-            'ZCK5': Price(qty=500., currency_unit=U.USX, unit=U.bushel),
+            'GBPUSD': Price[float](qty=1.25, currency_unit=U.USD, unit=U.GBP),
+            'USDGBP': Price[float](qty=1 / 1.25, currency_unit=U.GBP, unit=U.USD),
+            'ZCK5': Price[float](qty=500., currency_unit=U.USX, unit=U.bushel),
         }])[-1] == (500. / 1.25 * 5000.) * U.GBP  # 500 USX per bushel, 5000 bushels, 1.25 USD per GBP

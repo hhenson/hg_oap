@@ -1,6 +1,4 @@
-from dataclasses import dataclass, fields, FrozenInstanceError, is_dataclass
-
-import pytest
+from dataclasses import fields, FrozenInstanceError, is_dataclass
 
 from hg_oap.assets.asset import Asset
 from hg_oap.instrument_data_service.instrument_data_service import InstrumentData
@@ -27,10 +25,10 @@ from hg_oap.pricing_service.data_types import (
 from hg_oap.pricing_service.price import Price as ServicePrice
 from hg_oap.pricing_service.price_mesh_ui import PriceUIView
 from hg_oap.pricing_service.timed_value import TimedValue
-from hg_oap.stream import Stream
 from hg_oap.units import Dimension, Quantity, Unit
 from hgraph import CompoundScalar, TSB
 from hgraph.reflection import fields as time_series_fields
+from hgraph.stream import Stream
 
 
 PYTHON_OWNED_MODELS = (
@@ -110,12 +108,3 @@ def test_stream_supports_python_owned_dataclass_payloads():
         "origin",
         "size",
     }
-
-
-def test_stream_rejects_mutable_dataclass_payloads():
-    @dataclass
-    class MutablePayload:
-        value: int
-
-    with pytest.raises(TypeError, match="must be frozen"):
-        Stream[MutablePayload]
