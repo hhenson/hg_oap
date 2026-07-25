@@ -12,12 +12,12 @@ __all__ = (
     'order_states')
 
 
-@dataclass
+@dataclass(frozen=True)
 class OriginatorInfo:
     account: str
 
 
-@dataclass
+@dataclass(frozen=True)
 class Fill:
     """
     A fill for a single leg order (or a single leg of a multi-leg order).

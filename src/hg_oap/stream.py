@@ -1,4 +1,4 @@
-from dataclasses import fields, is_dataclass
+from dataclasses import fields, FrozenInstanceError, is_dataclass
 from typing import get_origin, get_type_hints
 
 from hgraph import CompoundScalar, TS, ts_schema
@@ -24,16 +24,26 @@ class Stream:
 
     def __class_getitem__(cls, payload):
         payload_type = get_origin(payload) or payload
-        if not (
+        if (
             isinstance(payload_type, type)
             and is_dataclass(payload_type)
             and not issubclass(payload_type, CompoundScalar)
         ):
-            return _HGraphStream[payload]
+            payload_fields = fields(payload_type)
+            probe = object.__new__(payload_type)
+            probe_field = payload_fields[0].name if payload_fields else "_frozen_probe"
+            try:
+                setattr(probe, probe_field, None)
+            except FrozenInstanceError:
+                pass
+            else:
+                raise TypeError(f"Stream payload dataclass must be frozen, got {payload!r}")
 
-        payload_types = get_type_hints(payload_type)
-        return ts_schema(
-            **{field.name: TS[payload_types[field.name]] for field in fields(payload_type)},
-            status=TS[StreamStatus],
-            status_msg=TS[str],
-        )
+            payload_types = get_type_hints(payload_type)
+            return ts_schema(
+                **{field.name: TS[payload_types[field.name]] for field in payload_fields},
+                status=TS[StreamStatus],
+                status_msg=TS[str],
+            )
+
+        return _HGraphStream[payload]

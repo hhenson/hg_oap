@@ -9,7 +9,7 @@ from hg_oap.units.unit import UNIT
 __all__ = ("Price", "PriceBundle", "L1Price", "L2Price", "PriceProfile")
 
 
-@dataclass
+@dataclass(frozen=True)
 class Price:
     """
     A bundle schema representing the price as a float and the associated currency asset that the price is representing.

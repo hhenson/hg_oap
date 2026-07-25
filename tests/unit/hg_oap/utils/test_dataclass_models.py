@@ -1,4 +1,6 @@
-from dataclasses import fields, is_dataclass
+from dataclasses import dataclass, fields, FrozenInstanceError, is_dataclass
+
+import pytest
 
 from hg_oap.assets.asset import Asset
 from hg_oap.instrument_data_service.instrument_data_service import InstrumentData
@@ -65,6 +67,17 @@ def test_domain_models_are_python_owned_dataclasses():
         assert not issubclass(model, CompoundScalar), model
 
 
+def test_domain_models_are_frozen():
+    for model in PYTHON_OWNED_MODELS:
+        instance = object.__new__(model)
+        try:
+            instance._frozen_probe = True
+        except FrozenInstanceError:
+            pass
+        else:
+            raise AssertionError(f"{model.__qualname__} must be a frozen dataclass")
+
+
 def test_expression_fields_are_not_stored_dataclass_fields():
     assert [field.name for field in fields(FutureContractSpec)] == [
         "exchange_mic",
@@ -97,3 +110,12 @@ def test_stream_supports_python_owned_dataclass_payloads():
         "origin",
         "size",
     }
+
+
+def test_stream_rejects_mutable_dataclass_payloads():
+    @dataclass
+    class MutablePayload:
+        value: int
+
+    with pytest.raises(TypeError, match="must be frozen"):
+        Stream[MutablePayload]

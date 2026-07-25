@@ -69,7 +69,7 @@ POSITIONS = TypeVar('POSITIONS', Position, Frame[Position], TSD[str, TSB[Quantit
 ###################################################
 
 
-@dataclass
+@dataclass(frozen=True)
 class Price(ExprClass, UnitConversionContext):
     """
     Price is a triplet of quantity, unit and currency unit, representing the price in the

@@ -9,7 +9,7 @@ __all__ = ("INSTRUMENT_ID", "Instrument")
 INSTRUMENT_ID = str  # A useful alias to help make it clear when a string is intended to represent an instrument id.
 
 
-@dataclass
+@dataclass(frozen=True)
 class InstrumentId:
     """
     Use this to represent an instrument with its identification type, this allows for identification of the symbology
