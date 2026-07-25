@@ -3,7 +3,6 @@ import typing
 from dataclasses import fields, is_dataclass
 
 from hgraph import SCALAR, TS, TimeSeriesSchema
-from hgraph._types import _substitute_typevars
 from hgraph.stream.stream import (
     Stream as _HGraphStream,
     StreamStatus,
@@ -24,6 +23,32 @@ __all__ = (
 _DATACLASS_STREAM_SCHEMAS: dict[object, type[TimeSeriesSchema]] = {}
 
 
+def _substitute_typevars(value, substitutions):
+    if isinstance(value, list):
+        return [_substitute_typevars(item, substitutions) for item in value]
+    try:
+        if value in substitutions:
+            return substitutions[value]
+    except TypeError:
+        pass
+
+    origin = typing.get_origin(value)
+    if origin is None:
+        return value
+    arguments = tuple(
+        _substitute_typevars(argument, substitutions)
+        for argument in typing.get_args(value)
+    )
+    if hasattr(value, "copy_with"):
+        return value.copy_with(arguments)
+    if origin in (typing.Union, types.UnionType):
+        return typing.Union[arguments]
+    try:
+        return origin[arguments[0] if len(arguments) == 1 else arguments]
+    except TypeError:
+        return value
+
+
 def _schema_token(value):
     origin = typing.get_origin(value)
     if origin is not None:
@@ -40,7 +65,7 @@ class Stream:
     def __class_getitem__(cls, payload):
         try:
             return _HGraphStream[payload]
-        except TypeError:
+        except (AttributeError, TypeError):
             pass
 
         cached = _DATACLASS_STREAM_SCHEMAS.get(payload)
@@ -82,9 +107,12 @@ class Stream:
                 ]
 
         schema = types.new_class(
-            f"Stream[{_schema_token(payload)}]", (TimeSeriesSchema,)
+            f"Stream[{_schema_token(payload)}]",
+            (TimeSeriesSchema,),
+            exec_body=lambda namespace: namespace.update(
+                __module__=__name__,
+                __annotations__=annotations,
+            ),
         )
-        schema.__module__ = __name__
-        schema.__annotations__ = annotations
         _DATACLASS_STREAM_SCHEMAS[payload] = schema
         return schema

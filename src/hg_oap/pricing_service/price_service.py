@@ -1,10 +1,10 @@
 import inspect
 import logging
-from typing import Type
+from typing import NamedTuple, Type
 
 from hgraph import subscription_service, TS, graph, service_impl, TSS, TSD, AUTO_RESOLVE, dispatch, type_, \
     COMPOUND_SCALAR, mesh_, operator, combine, if_then_else, try_except, dedup, compute_node, filter_, log_, str_, \
-    switch_, valid, or_, TSB, default, getattr_, SCALAR
+    switch_, valid, or_, TSB, default, getattr_, SCALAR, DEFAULT
 from hgraph.stream.stream import StreamStatus
 from hgraph.reflection import operator_overloads, scalar_type
 
@@ -20,29 +20,45 @@ from hg_oap.units import Unit
 __all__ = ("subscribe_price", "subscribe_price_by_name", "price_service", "pricing_model", "pricing_service_impl")
 
 
+class _PricingRequestKey(NamedTuple):
+    instrument: str
+    opts: PriceOpts
+
+
 @operator
-def subscribe_price(request: TS[COMPOUND_SCALAR]) -> PRICE:
+def subscribe_price(request: TS[COMPOUND_SCALAR]) -> DEFAULT[PRICE]:
     ...
+
+
+@compute_node
+def _pricing_request_key(request: TS[PricingRequest]) -> TS[_PricingRequestKey]:
+    return _PricingRequestKey(request.value.instrument, request.value.opts)
+
+
+@compute_node
+def _pricing_request_from_key(key: TS[_PricingRequestKey]) -> TS[PricingRequest]:
+    return PricingRequest(*key.value)
 
 
 @graph(overloads=subscribe_price)
 def subscribe_price_by_request(
         request: TS[PricingRequest], path: str = "instrument_price", price_type: Type[PRICE] = AUTO_RESOLVE) -> PRICE:
+    request_key = _pricing_request_key(request)
     if pricing_mesh := mesh_(f"pricing_service_{path}[{str(price_type)}]"):
-        return pricing_mesh[request]
+        return pricing_mesh[request_key]
     else:
-        return price_service[price_type](request, path=path)
+        return price_service[price_type](request_key, path=path)
 
 
 @graph(overloads=subscribe_price)
 def subscribe_price_by_name(
         request: TS[str], path: str = "instrument_price", price_type: Type[PRICE] = AUTO_RESOLVE) -> PRICE:
     pricing_request = combine[TS[PricingRequest]](instrument=request, opts=PriceOpts())
-    return subscribe_price(pricing_request, path, price_type)
+    return subscribe_price[price_type](pricing_request, path)
 
 
 @subscription_service
-def price_service(request: TS[PricingRequest], path: str) -> PRICE:
+def price_service(request: TS[_PricingRequestKey], path: str) -> PRICE:
     ...
 
 
@@ -58,18 +74,19 @@ def pricing_model(instrument: TS[Instrument], opts: TS[PriceOpts], model: TS[Pri
 
 @service_impl(interfaces=(price_service,))
 def pricing_service_impl(
-        request: TSS[PricingRequest],
+        request: TSS[_PricingRequestKey],
         path: str,
         pricing_regime_context: PricingRegimeContext,
         price_type: Type[PRICE] = AUTO_RESOLVE,
-        publish_to_ui: bool = True) -> TSD[PricingRequest, PRICE]:
+        publish_to_ui: bool = True) -> TSD[_PricingRequestKey, PRICE]:
 
     with pricing_regime_context:
 
         @graph
-        def _invoke_pricing_model(key: TS[PricingRequest]) -> price_type:
-            symbol = key.instrument
-            opts = key.opts
+        def _invoke_pricing_model(key: TS[_PricingRequestKey]) -> price_type:
+            pricing_request = _pricing_request_from_key(key)
+            symbol = pricing_request.instrument
+            opts = pricing_request.opts
             ref_data = instrument_by_name(symbol)
             instrument = ref_data.instrument
             ref_data_error = ref_data.status_msg

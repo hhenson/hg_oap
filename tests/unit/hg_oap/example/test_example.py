@@ -2,7 +2,7 @@ from dataclasses import dataclass
 from datetime import date, time
 from typing import Generic, TypeVar
 
-from hgraph import TSB, TSD, Frame, graph, TS, map_, add_, switch_, compute_node, subscription_service, \
+from hgraph import TSB, TSD, Frame, TimeSeriesSchema, graph, TS, map_, add_, switch_, compute_node, subscription_service, \
     request_reply_service, service_impl, register_service, combine, sample, flip, dedup, const
 from hgraph import merge, operator
 from hgraph.nodes import make_tsd
@@ -53,17 +53,17 @@ def instrument_service(path: str = 'instrument_service'):
 
 
 @dataclass(frozen=True)
-class Position(Generic[NUMBER]):
+class Position:
     """
     Position is a triplet of quantity, unit and instrument. In reality you almost never need to have an object
     representing a position, but rather a mapping of instruments to quantities
     """
-    qty: NUMBER
+    qty: float
     unit: Unit
     instrument: Instrument
 
 
-POSITIONS = TypeVar('POSITIONS', Position[float], Frame[Position[float]], TSD[str, TSB[Quantity]])
+POSITIONS = TypeVar('POSITIONS', Position, Frame[Position], TSD[str, TSB[Quantity]])
 
 
 ###################################################
@@ -83,16 +83,25 @@ class Price(Generic[NUMBER], ExprClass, UnitConversionContext):
     unit_conversion_factors: tuple[Quantity, ...] = lambda self: (self.qty * (self.currency_unit / self.unit),)
 
 
+class ExamplePriceBundle(TimeSeriesSchema):
+    qty: TS[float]
+    currency_unit: TS[Unit]
+    unit: TS[Unit]
+
+
+ExamplePriceBundle.__scalar_type__ = Price
+
+
 #####################
 
 
 @subscription_service
-def get_price(instrument: TS[INSTRUMENT_ID], path: str = "price_service") -> TSB[Price[float]]:
+def get_price(instrument: TS[INSTRUMENT_ID], path: str = "price_service") -> TSB[ExamplePriceBundle]:
     ...
 
 
 @request_reply_service
-def submit_price(instrument: TS[INSTRUMENT_ID], price: TSB[Price[float]], path: str = "price_service"):
+def submit_price(instrument: TS[INSTRUMENT_ID], price: TSB[ExamplePriceBundle], path: str = "price_service"):
     ...
 
 
@@ -114,24 +123,29 @@ def fx_rate_symbol(fr: TS[Unit], to: TS[Unit]) -> TS[str]:
     return f"{fr.value.primary_unit}{to.value.primary_unit}"  # FX rate naming convention is weird
 
 
-def convert_price_to_currency_units(price: TSB[Price], currency_unit: TS[Unit]) -> TSB[Price]:
+def convert_price_to_currency_units(
+    price: TSB[ExamplePriceBundle], currency_unit: TS[Unit]
+) -> TSB[ExamplePriceBundle]:
     # here the FXSpot instrument provides a property unit_conversion_factors which contains a Quantity
     # in units of to_currency_unit per from_currency_unit
-    with get_price(fx_rate_symbol(price.currency_unit, currency_unit)):
-        return TSB[Price[float]].from_ts(qty=convert_units(price.qty, price.currency_unit, currency_unit),
-                                         currency_unit=currency_unit, unit=price.unit)
+    fx_price = get_price(fx_rate_symbol(price.currency_unit, currency_unit))
+    return TSB[ExamplePriceBundle].from_ts(
+        qty=convert_units(price.qty, price.currency_unit, fx_price.unit) * fx_price.qty,
+        currency_unit=currency_unit,
+        unit=price.unit,
+    )
 
 
 ###################################################
 
 @operator
-def calculate_notional(positions: Position[float], currency: TS[Unit]) -> TSB[Quantity]:
+def calculate_notional(positions: Position, currency: TS[Unit]) -> TSB[Quantity]:
     ...
 
 
 @graph(overloads=calculate_notional)
-def calculate_notional_default(positions: Position[float], currency: TS[Unit]) -> TSB[Quantity]:
-    return calculate_notional_tsb(TSB[Position[float]].from_ts(
+def calculate_notional_default(positions: Position, currency: TS[Unit]) -> TSB[Quantity]:
+    return calculate_notional_tsb(TSB[Position].from_ts(
         qty=positions.qty,
         unit=dedup(const(positions.unit, TS[Unit])),
         instrument=dedup(positions.instrument)),
@@ -139,7 +153,7 @@ def calculate_notional_default(positions: Position[float], currency: TS[Unit]) -
 
 
 @graph(overloads=calculate_notional)
-def calculate_notional_tsb(position: TSB[Position[float]], currency_unit: TS[Unit]) -> TSB[Quantity]:
+def calculate_notional_tsb(position: TSB[Position], currency_unit: TS[Unit]) -> TSB[Quantity]:
     price = get_price(position.instrument.symbol)
     requires_conversion = price.currency_unit != currency_unit
     requires_currency_conversion = price.currency_unit.dimension != currency_unit.dimension
@@ -147,8 +161,11 @@ def calculate_notional_tsb(position: TSB[Position[float]], currency_unit: TS[Uni
         combine[TS[tuple[bool, bool]]](requires_currency_conversion, requires_conversion),
         {
             (True, True): lambda p, c: convert_price_to_currency_units(p, c),
-            (True, False): lambda p, c: TSB[Price[float]].from_ts(qty=convert_units(p.qty, p.currency_unit, c),
-                                                                  currency_unit=c, unit=p.unit),
+            (True, False): lambda p, c: TSB[ExamplePriceBundle].from_ts(
+                qty=convert_units(p.qty, p.currency_unit, c),
+                currency_unit=c,
+                unit=p.unit,
+            ),
             (False, False): lambda p, c: p
         }, price, currency_unit)
 
@@ -178,7 +195,7 @@ class Agricultural(Commodity):
 
 def test_example():
     @graph
-    def g(prices: TSD[str, TSB[Price[float]]]) -> TS[Quantity]:
+    def g(prices: TSD[str, TSB[ExamplePriceBundle]]) -> TS[Quantity]:
         register_service("price_service", price_service)
         register_service("instrument_service", instrument_service)
 
@@ -215,7 +232,7 @@ def test_example():
         gbpusd = FXSpot(symbol='GBPUSD', base=Currencies.GBP.value, quote=Currencies.USD.value)
         register_instrument(gbpusd)
 
-        zcm5_position = Position[float](qty=100., unit=U.lot, instrument=zck5)
+        zcm5_position = Position(qty=100., unit=U.lot, instrument=zck5)
         notional = calculate_notional(zcm5_position, currency=U.GBP)
 
         map_(lambda key, p: submit_price(key, p), prices)
@@ -226,7 +243,7 @@ def test_example():
         g,
         # __trace__=dict(start=False, stop=False),
         prices=[None, {
-            'GBPUSD': Price[float](qty=1.25, currency_unit=U.USD, unit=U.GBP),
-            'USDGBP': Price[float](qty=1 / 1.25, currency_unit=U.GBP, unit=U.USD),
-            'ZCK5': Price[float](qty=500., currency_unit=U.USX, unit=U.bushel),
+            'GBPUSD': dict(qty=1.25, currency_unit=U.USD, unit=U.GBP),
+            'USDGBP': dict(qty=1 / 1.25, currency_unit=U.GBP, unit=U.USD),
+            'ZCK5': dict(qty=500., currency_unit=U.USX, unit=U.bushel),
         }])[-1] == (500. / 1.25 * 5000.) * U.GBP  # 500 USX per bushel, 5000 bushels, 1.25 USD per GBP
