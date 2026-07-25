@@ -1,9 +1,8 @@
-import types
-import typing
 from dataclasses import fields, is_dataclass
+from typing import get_origin, get_type_hints
 
-from hgraph import SCALAR, TS, TimeSeriesSchema
-from hgraph.stream.stream import (
+from hgraph import CompoundScalar, TS, ts_schema
+from hgraph.stream import (
     Stream as _HGraphStream,
     StreamStatus,
     combine_status_messages,
@@ -20,99 +19,21 @@ __all__ = (
 )
 
 
-_DATACLASS_STREAM_SCHEMAS: dict[object, type[TimeSeriesSchema]] = {}
-
-
-def _substitute_typevars(value, substitutions):
-    if isinstance(value, list):
-        return [_substitute_typevars(item, substitutions) for item in value]
-    try:
-        if value in substitutions:
-            return substitutions[value]
-    except TypeError:
-        pass
-
-    origin = typing.get_origin(value)
-    if origin is None:
-        return value
-    arguments = tuple(
-        _substitute_typevars(argument, substitutions)
-        for argument in typing.get_args(value)
-    )
-    if hasattr(value, "copy_with"):
-        return value.copy_with(arguments)
-    if origin in (typing.Union, types.UnionType):
-        return typing.Union[arguments]
-    try:
-        return origin[arguments[0] if len(arguments) == 1 else arguments]
-    except TypeError:
-        return value
-
-
-def _schema_token(value):
-    origin = typing.get_origin(value)
-    if origin is not None:
-        arguments = ",".join(_schema_token(argument) for argument in typing.get_args(value))
-        return f"{origin.__module__}.{origin.__qualname__}[{arguments}]"
-    if isinstance(value, type):
-        return f"{value.__module__}.{value.__qualname__}"
-    return repr(value)
-
-
 class Stream:
     """Build an hgraph status stream around a schema or Python dataclass."""
 
     def __class_getitem__(cls, payload):
-        try:
-            return _HGraphStream[payload]
-        except (AttributeError, TypeError):
-            pass
-
-        cached = _DATACLASS_STREAM_SCHEMAS.get(payload)
-        if cached is not None:
-            return cached
-
-        origin = typing.get_origin(payload) or payload
-        is_open_scalar = payload is SCALAR
-        if not is_open_scalar and not (
-            isinstance(origin, type) and is_dataclass(origin)
+        payload_type = get_origin(payload) or payload
+        if not (
+            isinstance(payload_type, type)
+            and is_dataclass(payload_type)
+            and not issubclass(payload_type, CompoundScalar)
         ):
-            raise TypeError(
-                "Stream[...] requires a dataclass, CompoundScalar, or "
-                f"TimeSeriesSchema payload, got {payload!r}"
-            )
+            return _HGraphStream[payload]
 
-        parameters = (
-            tuple(getattr(origin, "__parameters__", ())) if not is_open_scalar else ()
+        payload_types = get_type_hints(payload_type)
+        return ts_schema(
+            **{field.name: TS[payload_types[field.name]] for field in fields(payload_type)},
+            status=TS[StreamStatus],
+            status_msg=TS[str],
         )
-        arguments = tuple(typing.get_args(payload))
-        if arguments and len(arguments) != len(parameters):
-            raise TypeError(
-                f"{origin.__qualname__} expects {len(parameters)} type arguments, "
-                f"got {len(arguments)}"
-            )
-        substitutions = dict(zip(parameters, arguments))
-
-        annotations = {
-            "status": TS[StreamStatus],
-            "status_msg": TS[str],
-        }
-        if not is_open_scalar:
-            resolved_annotations = typing.get_type_hints(origin)
-            for item in fields(origin):
-                annotations[item.name] = TS[
-                    _substitute_typevars(
-                        resolved_annotations.get(item.name, item.type), substitutions
-                    )
-                ]
-
-        schema = types.new_class(
-            f"Stream[{_schema_token(payload)}]",
-            (TimeSeriesSchema,),
-            exec_body=lambda namespace: namespace.update(
-                __module__=__name__,
-                __annotations__=annotations,
-            ),
-        )
-        _DATACLASS_STREAM_SCHEMAS[payload] = schema
-        return schema
