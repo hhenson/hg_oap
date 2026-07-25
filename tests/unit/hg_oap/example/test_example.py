@@ -2,7 +2,7 @@ from dataclasses import dataclass
 from datetime import date, time
 from typing import Generic, TypeVar
 
-from hgraph import CompoundScalar, TSB, TSD, Frame, graph, TS, map_, add_, switch_, compute_node, subscription_service, \
+from hgraph import TSB, TSD, Frame, graph, TS, map_, add_, switch_, compute_node, subscription_service, \
     request_reply_service, service_impl, register_service, combine, sample, flip, dedup, const
 from hgraph import merge, operator
 from hgraph.nodes import make_tsd
@@ -53,7 +53,7 @@ def instrument_service(path: str = 'instrument_service'):
 
 
 @dataclass(frozen=True)
-class Position(CompoundScalar, Generic[NUMBER]):
+class Position(Generic[NUMBER]):
     """
     Position is a triplet of quantity, unit and instrument. In reality you almost never need to have an object
     representing a position, but rather a mapping of instruments to quantities
@@ -70,7 +70,7 @@ POSITIONS = TypeVar('POSITIONS', Position[float], Frame[Position[float]], TSD[st
 
 
 @dataclass
-class Price(CompoundScalar, Generic[NUMBER], ExprClass, UnitConversionContext):
+class Price(Generic[NUMBER], ExprClass, UnitConversionContext):
     """
     Price is a triplet of quantity, unit and currency unit, representing the price in the
     units of the currency unit per unit of the thing being priced, for example a triplet of

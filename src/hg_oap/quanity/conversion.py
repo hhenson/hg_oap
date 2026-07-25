@@ -34,6 +34,12 @@ def convert_units_default(qty: TS[NUMBER], fr: TS[Unit], to: TS[Unit], tp: Type[
         index_of(TSL.from_ts(valid(pass_through), valid(ratio_converted), valid(offset_converted)), True)]
 
 
+@compute_node(overloads=convert_units)
+def convert_quantity(qty: TS[Quantity], to: TS[Unit],
+                     context: CONTEXT[UnitConversionContext] = None) -> TS[Quantity]:
+    return qty.value.as_(to.value)
+
+
 @graph(overloads=convert_units)
 def convert_qty(qty: TSB[Quantity], to: TS[Unit]) -> TSB[Quantity]:
     return {"qty": convert_units(qty.qty, qty.unit, to), "unit": to}
