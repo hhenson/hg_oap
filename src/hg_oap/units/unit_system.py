@@ -4,8 +4,6 @@ from functools import reduce
 from itertools import chain, combinations
 from typing import ClassVar, Tuple, Iterable
 
-from hg_oap.utils.exprclass import CallableDescriptor
-
 __all__ = ("UnitSystem", "UnitConversionContext")
 
 
@@ -63,10 +61,7 @@ class UnitSystem:
                 value = ComplexUnit(value)
 
         if value.name != key:
-            if (desc := getattr(type(value), 'name', None)) and isinstance(desc, CallableDescriptor):
-                desc.__override__(value, key)
-            else:
-                object.__setattr__(value, 'name', key)
+            object.__setattr__(value, 'name', key)
 
             from hg_oap.units.dimension import PrimaryDimension
             if isinstance(value, PrimaryDimension):

@@ -4,13 +4,13 @@ from typing import ClassVar, TypeVar
 
 import polars as pl
 
-from hgraph import CompoundScalar, NUMBER, TimeSeriesSchema, MIN_DT
+from hgraph import NUMBER, TimeSeriesSchema, MIN_DT
 
 __all__ = ("TimedValue", "TIMED_VALUE", "TIMED_VALUE_1", "TIMED_VALUE_BUNDLE")
 
 
 @dataclass(frozen=True)
-class TimedValue(CompoundScalar):
+class TimedValue:
     val: float
     timestamp: datetime
 

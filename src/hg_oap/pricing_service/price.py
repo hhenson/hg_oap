@@ -5,9 +5,9 @@ from enum import Enum
 from typing import TypeVar
 
 from hg_oap.pricing_service.timed_value import TimedValue
+from hg_oap.stream import Stream
 from hg_oap.units import UnitConversionContext, Unit, Quantity
 from hgraph import TSB, COMPOUND_SCALAR
-from hgraph.stream.stream import Stream
 
 __all__ = (
     "PriceType",
@@ -48,5 +48,5 @@ class Price(TimedValue, UnitConversionContext):
         return (self.val * (self.currency_unit / self.unit),)
 
 
-# A PRICE as published by the pricing service is a TSB of a Stream of CompoundScalars (prices of various types)
+# A PRICE published by the pricing service is a status stream of a dataclass price payload.
 PRICE = TypeVar("PRICE", bound=TSB[Stream[COMPOUND_SCALAR]])

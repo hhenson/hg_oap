@@ -1,8 +1,6 @@
 from dataclasses import dataclass, fields
 from typing import TypeVar, Any, Generic
 
-from hgraph import CompoundScalar
-
 from hg_oap.instruments.instrument import Instrument
 from hg_oap.pricing.price import Price
 from hg_oap.units.quantity import Quantity
@@ -24,7 +22,7 @@ __all__ = (
 
 
 @dataclass(frozen=True)
-class OrderType(CompoundScalar):
+class OrderType:
     """Marker class to represent an order type"""
 
 
@@ -101,4 +99,3 @@ def is_order_type(v: Any) -> bool:
     if isinstance(v, TypeVar):
         return bool((bound := v.__bound__) and issubclass(bound, OrderType))
     return isinstance(v, OrderType)
-

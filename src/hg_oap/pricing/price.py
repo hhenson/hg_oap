@@ -1,16 +1,16 @@
 from dataclasses import dataclass
 from typing import Generic
 
-from hgraph import TimeSeriesSchema, TS, Array, SIZE, TSB, CompoundScalar
+from hgraph import TimeSeriesSchema, TS, Array, SIZE, TSB
 
 from hg_oap.assets.currency import Currency
 from hg_oap.units.unit import UNIT
 
-__all__ = ("Price", "L1Price", "L2Price","PriceProfile",)
+__all__ = ("Price", "PriceBundle", "L1Price", "L2Price", "PriceProfile")
 
 
 @dataclass
-class Price(CompoundScalar):
+class Price:
     """
     A bundle schema representing the price as a float and the associated currency asset that the price is representing.
     """
@@ -23,6 +23,9 @@ class Price(CompoundScalar):
             return Price(price=self.price + other.price, currency=self.currency)
         else:
             raise ValueError(f"Cannot add {self} to {other} of {self.currency}")
+
+
+PriceBundle = TimeSeriesSchema.from_scalar_schema(Price)
 
 
 @dataclass

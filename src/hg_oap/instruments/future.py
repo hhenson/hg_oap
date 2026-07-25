@@ -13,7 +13,6 @@ from hg_oap.units.unit import Unit
 from hg_oap.units.unit_system import UnitConversionContext
 from hg_oap.utils import ExprClass, Expression, SELF, ParameterOp
 from hg_oap.utils.op import lazy
-from hgraph import CompoundScalar
 
 __all__ = (
     "SettlementMethod",
@@ -34,7 +33,7 @@ class SettlementMethod(Enum):
 
 
 @dataclass(frozen=True)
-class Settlement(CompoundScalar):
+class Settlement:
     """
     The settlement of a future contract.
     """
@@ -43,7 +42,7 @@ class Settlement(CompoundScalar):
 
 
 @dataclass(frozen=True)
-class FutureContractSpec(CompoundScalar, ExprClass, UnitConversionContext):
+class FutureContractSpec(ExprClass, UnitConversionContext):
     """
     The specification of a future contract.
     """
@@ -67,7 +66,7 @@ class FutureContractSpec(CompoundScalar, ExprClass, UnitConversionContext):
 
 
 @dataclass(frozen=True, kw_only=True)
-class FutureContractSeries(CompoundScalar, ExprClass, UnitConversionContext):
+class FutureContractSeries(ExprClass, UnitConversionContext):
     SELF: "FutureContractSeries" = SELF
     """
     A series of future contracts

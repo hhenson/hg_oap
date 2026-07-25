@@ -17,7 +17,7 @@ from hg_oap.units import Unit, Quantity
 from hg_oap.units.default_unit_system import U
 from hgraph import graph, TS, const, register_service, TSB, WiringGraphContext, AUTO_RESOLVE, combine, MIN_DT, \
     getattr_, SCALAR, service_impl, TSS, TSD, map_, compute_node
-from hgraph.stream.stream import Stream, StreamStatus
+from hg_oap.stream import Stream, StreamStatus
 from hgraph.test import eval_node
 from hgraph.reflection import resolved_type
 
@@ -99,8 +99,8 @@ def instrument_by_name_impl(key: TSS[str]) -> TSD[str, TSB[Stream[InstrumentData
             first_delivery_date=None,
             last_delivery_date=None,
             expiry=None)
-        f1 = Future(symbol=symbol, series=future_series, contract_base_date=date(2024, 1, 1))
-        f2 = Future(symbol=symbol, series=future_series, contract_base_date=date(2024, 2, 1))
+        f1 = Future(series=future_series, contract_base_date=date(2024, 1, 1))
+        f2 = Future(series=future_series, contract_base_date=date(2024, 2, 1))
         if symbol == "f1":
             return f1
         elif symbol == "f2":

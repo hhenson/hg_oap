@@ -2,7 +2,7 @@ from dataclasses import dataclass
 from typing import TypeVar, Any
 
 from frozendict import frozendict
-from hgraph import CompoundScalar, TSB
+from hgraph import TSB
 
 from hg_oap.orders.order import ORDER, OriginatorInfo, Fill
 from hg_oap.orders.order_type import OrderType
@@ -30,7 +30,7 @@ ORDER_REQUEST = TypeVar('ORDER_REQUEST', bound="OrderRequest")
 
 
 @dataclass(frozen=True)
-class OrderRequest(CompoundScalar):
+class OrderRequest:
     order_id: str
     version: int
 
@@ -108,7 +108,7 @@ class CancelOrderRequest(OrderRequest):
 
 
 @dataclass(frozen=True)
-class OrderResponse(CompoundScalar):
+class OrderResponse:
     order_id: str
     version: int
     original_request: OrderRequest
@@ -145,7 +145,7 @@ class OrderReject(OrderResponse):
 
 
 @dataclass(frozen=True)
-class OrderEvent(CompoundScalar):
+class OrderEvent:
     """
     Order events are created by order handlers, they can interact order state and make changes that are not as a direct
     response to a request. These include Fills, UnsolicitedCancels, UnsolicitedSuspend and UnsolicitedResume events.
