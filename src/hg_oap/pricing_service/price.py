@@ -6,8 +6,7 @@ from typing import TypeVar
 
 from hg_oap.pricing_service.timed_value import TimedValue
 from hg_oap.units import UnitConversionContext, Unit, Quantity
-from hgraph import TSB, COMPOUND_SCALAR
-from hgraph.stream.stream import Stream
+from hgraph import TSB, TS_SCHEMA
 
 __all__ = (
     "PriceType",
@@ -48,5 +47,6 @@ class Price(TimedValue, UnitConversionContext):
         return (self.val * (self.currency_unit / self.unit),)
 
 
-# A PRICE as published by the pricing service is a TSB of a Stream of CompoundScalars (prices of various types)
-PRICE = TypeVar("PRICE", bound=TSB[Stream[COMPOUND_SCALAR]])
+# Pricing overload requirements constrain PRICE to status-stream bundles.
+# The generic bound remains bundle-wide for compatibility across hgraph runtimes.
+PRICE = TypeVar("PRICE", bound=TSB[TS_SCHEMA])

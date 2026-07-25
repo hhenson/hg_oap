@@ -1,5 +1,5 @@
 from abc import abstractmethod
-from dataclasses import dataclass, Field, MISSING, field, InitVar, KW_ONLY
+from dataclasses import dataclass, Field, MISSING, field, fields, InitVar, KW_ONLY
 from datetime import date
 from inspect import isfunction, signature
 
@@ -17,6 +17,7 @@ NO_VALUE = _NO_VALUE()
 class _BaseExDescriptor:
     def __init__(self, expr):
         self.expr = expr
+        self.allow_frozen_override = False
 
     def __get__(self, instance, owner=None):
         if instance is not None:
@@ -38,7 +39,9 @@ class _BaseExDescriptor:
 
     def __set__(self, instance, value):
         if value is not self and instance is not None:
-            if not instance.__dataclass_params__.frozen:
+            if self.allow_frozen_override:
+                object.__setattr__(instance, self.override_name, value)
+            elif not instance.__dataclass_params__.frozen:
                 setattr(instance, self.override_name, value)
             else:
                 raise AttributeError(f"field {self.name} in {instance} is readonly")
@@ -99,6 +102,15 @@ class DateListDescriptor(_BaseExDescriptor):
 def _process_ops_and_lambdas(cls):
     cls.__annotations__.pop("SELF", None)
 
+    from hgraph import CompoundScalar
+
+    is_compound_scalar = issubclass(cls, CompoundScalar)
+    inherited_dataclass_fields = {
+        f.name
+        for base in cls.__mro__[1:]
+        if hasattr(base, "__dataclass_fields__")
+        for f in fields(base)
+    }
     overridable = []
     new_annotations = {}
 
@@ -123,6 +135,14 @@ def _process_ops_and_lambdas(cls):
                     setattr(cls, k, d)
 
             if d:
+                if not is_compound_scalar:
+                    d.allow_frozen_override = True
+                    if k in inherited_dataclass_fields:
+                        continue
+                    cls.__annotations__[k] = InitVar[a]
+                    overridable.append(k)
+                    continue
+
                 cls.__annotations__[k] = InitVar[a]
                 overridable.append(k)
 
@@ -138,6 +158,33 @@ def _process_ops_and_lambdas(cls):
                         metadata={"hidden": True},
                     ),
                 )
+
+    if not is_compound_scalar:
+        if not overridable:
+            return cls
+
+        original_post_init = cls.__dict__.get("__post_init__")
+
+        def post_init(self, *args):
+            from dataclasses import _FIELD_INITVAR
+
+            init_vars = (
+                f.name
+                for f in self.__dataclass_fields__.values()
+                if f._field_type is _FIELD_INITVAR
+            )
+            for k, v in zip(init_vars, args):
+                descriptor = getattr(type(self), k, None)
+                if (
+                    isinstance(descriptor, _BaseExDescriptor)
+                    and v is not descriptor
+                ):
+                    descriptor.__override__(self, v)
+            if original_post_init:
+                original_post_init(self)
+
+        setattr(cls, "__post_init__", post_init)
+        return cls
 
     cls.__annotations__ = {"_": KW_ONLY, **cls.__annotations__, **new_annotations}
 
@@ -225,6 +272,14 @@ def replace(obj, /, **changes):
                     )
                 elif not getattr(obj.__class__, f.name).__overriden__(obj):
                     continue
+            elif (
+                isinstance(
+                    descriptor := getattr(obj.__class__, f.name, None),
+                    _BaseExDescriptor,
+                )
+                and not descriptor.__overriden__(obj)
+            ):
+                continue
 
             changes[f.name] = getattr(obj, f.name)
 

@@ -7,8 +7,6 @@ from typing import Tuple, ForwardRef, TypeVar, ClassVar
 
 from hg_oap.units.dimension import Dimension
 from hg_oap.units.unit_system import UnitSystem
-from hg_oap.utils.exprclass import ExprClass
-from hgraph import CompoundScalar
 
 NUMBER = TypeVar('NUMBER', int, float)
 
@@ -17,10 +15,10 @@ __all__ = ("Unit", "PrimaryUnit", "DerivedUnit", "OffsetDerivedUnit", "DiffDeriv
 
 
 @dataclass(frozen=True, kw_only=True, init=False, repr=False)
-class Unit(CompoundScalar, ExprClass):
-    name: str = None
+class Unit:
+    name: str = ""
     dimension: Dimension
-    prefixes: Tuple[str, ...] | None = field(default=None, hash=False)
+    prefixes: Tuple[str, ...] = field(default=(), hash=False)
 
     def __str__(self):
         return self.name
@@ -103,11 +101,10 @@ class PrimaryUnit(Unit):
             return d
 
         n = super().__new__(cls)
+        object.__setattr__(n, 'name', name or "")
         object.__setattr__(n, 'dimension', dimension)
-        if name:
-            object.__setattr__(n, 'name', name)
-        if prefixes:
-            object.__setattr__(n, 'prefixes', prefixes)
+        object.__setattr__(n, 'prefixes', prefixes or ())
+        object.__setattr__(n, 'ratio', 1.0)
 
         UnitSystem.instance().__primary_units__[dimension] = n
         return n
@@ -150,8 +147,6 @@ class PrimaryUnit(Unit):
 class DerivedUnit(Unit):
     primary_unit: Unit
     ratio: float
-    dimension: Dimension = lambda s: s.primary_unit.dimension
-    name: str = lambda s: f"{s.ratio}*{s.primary_unit.name}"
 
     def __new__(cls, primary_unit: Unit | ForwardRef("Quantity"), ratio: float = 1.0, name=None, prefixes=None):
         from .quantity import Quantity
@@ -167,13 +162,11 @@ class DerivedUnit(Unit):
             return d
 
         n = super().__new__(cls)
+        object.__setattr__(n, 'name', name or f"{ratio}*{primary_unit.name}")
+        object.__setattr__(n, 'dimension', primary_unit.dimension)
+        object.__setattr__(n, 'prefixes', prefixes or ())
         object.__setattr__(n, 'primary_unit', primary_unit)
         object.__setattr__(n, 'ratio', ratio)
-
-        if name:
-            object.__setattr__(n, 'name', name)
-        if prefixes:
-            object.__setattr__(n, 'prefixes', prefixes)
 
         UnitSystem.instance().__derived_units__[(primary_unit, ratio)] = n
         return n
@@ -210,7 +203,6 @@ class DerivedUnit(Unit):
 @dataclass(frozen=True, kw_only=True, init=False, repr=False)
 class OffsetDerivedUnit(DerivedUnit):
     offset: float
-    diff: Unit = field(default=lambda s: DiffDerivedUnit(offset_unit=s), hash=False)
 
     _is_multiplicative: ClassVar[bool] = False
 
@@ -223,17 +215,22 @@ class OffsetDerivedUnit(DerivedUnit):
             return d
 
         n = Unit.__new__(cls)
+        object.__setattr__(n, 'name', name or f"{ratio}*{primary_unit.name}")
+        object.__setattr__(n, 'dimension', primary_unit.dimension)
+        object.__setattr__(n, 'prefixes', prefixes or ())
         object.__setattr__(n, 'primary_unit', primary_unit)
         object.__setattr__(n, 'ratio', ratio)
         object.__setattr__(n, 'offset', offset)
 
-        if name:
-            object.__setattr__(n, 'name', name)
-        if prefixes:
-            object.__setattr__(n, 'prefixes', prefixes)
-
         UnitSystem.instance().__derived_units__[(primary_unit, ratio, offset)] = n
         return n
+
+    @property
+    def diff(self) -> Unit:
+        if (diff := getattr(self, '_diff', None)) is None:
+            diff = DiffDerivedUnit(offset_unit=self)
+            object.__setattr__(self, '_diff', diff)
+        return diff
 
     def __add__(self, other):
         if isinstance(other, DiffDerivedUnit) and other.dimension is self.dimension:
@@ -263,9 +260,6 @@ class OffsetDerivedUnit(DerivedUnit):
 @dataclass(frozen=True, kw_only=True, init=False, repr=False)
 class DiffDerivedUnit(DerivedUnit):
     offset_unit: Unit = None
-    primary_unit: Unit = lambda s: s.offset_unit.primary_unit
-    ratio: float = lambda s: s.offset_unit.ratio
-    name: str = lambda s: f"{s.offset_unit.name}_diff"
 
     _is_multiplicative: ClassVar[bool] = True
 
@@ -277,9 +271,12 @@ class DiffDerivedUnit(DerivedUnit):
             return d
 
         n = Unit.__new__(cls)
+        object.__setattr__(n, 'name', name or f"{offset_unit.name}_diff")
+        object.__setattr__(n, 'dimension', offset_unit.dimension)
+        object.__setattr__(n, 'prefixes', ())
+        object.__setattr__(n, 'primary_unit', offset_unit.primary_unit)
+        object.__setattr__(n, 'ratio', offset_unit.ratio)
         object.__setattr__(n, 'offset_unit', offset_unit)
-        if name:
-            object.__setattr__(n, 'name', name)
         UnitSystem.instance().__derived_units__[(id(offset_unit), 'diff')] = n
         return n
 
@@ -302,9 +299,7 @@ class DiffDerivedUnit(DerivedUnit):
 class ComplexUnit(Unit):
     components: Tuple[Tuple[Unit, int], ...]
     scale: float = 1.0
-    dimension: Dimension = lambda s: reduce(operator.mul, (u.dimension**m for u, m in s.components))
-    ratio: float = lambda s: reduce(operator.mul, (pow(u.ratio, m) for u, m in s.components)) * s.scale
-    name: str = lambda s: s._build_name()
+    ratio: float
 
     def __new__(cls, components, name=None, prefixes=None, scale=None):
         from hg_oap.units.quantity import Quantity
@@ -325,14 +320,12 @@ class ComplexUnit(Unit):
 
         n = super().__new__(cls)
         object.__setattr__(n, 'components', components)
-
-        if effective_scale != 1.0:
-            object.__setattr__(n, 'scale', effective_scale)
-
-        if name:
-            object.__setattr__(n, 'name', name)
-        if prefixes:
-            object.__setattr__(n, 'prefixes', prefixes)
+        object.__setattr__(n, 'scale', effective_scale)
+        object.__setattr__(n, 'dimension', reduce(operator.mul, (u.dimension**m for u, m in components)))
+        object.__setattr__(n, 'ratio',
+                           reduce(operator.mul, (pow(u.ratio, m) for u, m in components)) * effective_scale)
+        object.__setattr__(n, 'name', name or n._build_name())
+        object.__setattr__(n, 'prefixes', prefixes or ())
 
         UnitSystem.instance().__complex_units__[lookup_key] = n
         return n
@@ -345,7 +338,7 @@ class ComplexUnit(Unit):
         return scale + up + dn
 
     def _to_components(self, power=1):
-        if type(self).name.__overriden__(self) or self.scale != 1.0:
+        if self.name != self._build_name() or self.scale != 1.0:
             return super()._to_components(power)
         else:
             return self.components if power == 1 else tuple((u, p * power) for u, p in self.components)

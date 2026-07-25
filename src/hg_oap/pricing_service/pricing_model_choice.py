@@ -1,10 +1,11 @@
 import dataclasses
 from datetime import date
-from typing import Type, Tuple
+from collections.abc import Iterator
+from typing import Type
 
 from hg_oap.instruments.instrument import Instrument
 from hg_oap.pricing_service import PriceOpts, PricingModel, PriceTraits, PricingRegimeContext
-from hgraph import compute_node, TS, CompoundScalar, CONTEXT, REQUIRED
+from hgraph import compute_node, TS, CONTEXT, REQUIRED
 
 __all__ = ("choose_pricing_model",)
 
@@ -54,11 +55,13 @@ def choose_pricing_model(instrument: TS[Instrument],
     return best_model
 
 
-def _types(instrument_type: Type[Instrument], opts_type: Type[PriceOpts]) -> Tuple[Type[Instrument], Type[PriceOpts]]:
-    i_type = instrument_type
-    o_type = opts_type
-    while o_type is not CompoundScalar:
-        while i_type is not CompoundScalar:
+def _types(
+    instrument_type: Type[Instrument], opts_type: Type[PriceOpts]
+) -> Iterator[tuple[Type[Instrument], Type[PriceOpts]]]:
+    for o_type in opts_type.__mro__:
+        if not dataclasses.is_dataclass(o_type):
+            continue
+        for i_type in instrument_type.__mro__:
+            if not dataclasses.is_dataclass(i_type):
+                continue
             yield i_type, o_type
-            i_type = i_type.__mro__[1]
-        o_type = o_type.__mro__[1]

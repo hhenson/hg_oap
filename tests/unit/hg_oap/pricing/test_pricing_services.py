@@ -5,7 +5,7 @@ from hgraph.adaptors.data_frame import *
 from hgraph.test import eval_node
 
 from hg_oap.impl.assets.currency import Currencies
-from hg_oap.pricing.price import Price
+from hg_oap.pricing.price import PriceBundle
 from hg_oap.pricing.pricing_services import price_mid_table_impl, price_mid
 
 
@@ -33,7 +33,7 @@ class PriceCurrDataFrame(DataFrameSource):
 def test_price_mid():
 
     @graph
-    def g() -> TSB[Price]:
+    def g() -> TSB[PriceBundle]:
         register_service(default_path, price_mid_table_impl, data_frame_source=PriceDataFrame, static_currency="USD")
         return price_mid("a")
 
@@ -42,10 +42,9 @@ def test_price_mid():
 
 def test_price_mid_with_currency():
     @graph
-    def g() -> TSB[Price]:
+    def g() -> TSB[PriceBundle]:
         register_service(default_path, price_mid_table_impl, data_frame_source=PriceCurrDataFrame, currency_col="curr")
         return price_mid("a")
 
     assert eval_node(g) == [fd(price=1.0, currency=Currencies.EUR.value), fd(price=3.0)]
-
 

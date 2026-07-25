@@ -3,18 +3,17 @@ from datetime import date
 from typing import Type
 
 from hg_oap.instruments.instrument import Instrument
-from hgraph import CompoundScalar
 
 
 @dataclass(frozen=True, kw_only=True, repr=False)
-class PriceOpts(CompoundScalar):
+class PriceOpts:
 
     def __repr__(self) -> str:
         return ""
 
 
 @dataclass(frozen=True, kw_only=True)
-class PricingModel(CompoundScalar):
+class PricingModel:
     """
     Pricing model configures settings for an instance of a pricing branch.
     It is subclassed for different pricing functions and dispatched to the correct implementation.
@@ -22,7 +21,7 @@ class PricingModel(CompoundScalar):
 
 
 @dataclass(frozen=True)
-class PricingRequest(CompoundScalar):
+class PricingRequest:
     """
     Request for a price.  The parameter to the pricing service
     """

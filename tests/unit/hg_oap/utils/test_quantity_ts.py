@@ -2,7 +2,7 @@ from hg_oap.quanity.conversion import convert_units
 from hg_oap.units.default_unit_system import U
 from hg_oap.units.quantity import Quantity
 from hg_oap.units.unit import Unit
-from hgraph import graph, TS, compute_node, TSB, combine
+from hgraph import graph, TS, compute_node, combine
 from hgraph.test import eval_node
 
 
@@ -20,12 +20,12 @@ def test_quantity_ts():
     assert eval_node(g, ts=[1., None, 2.], u=[U.kg, None, None], u1=[None, U.kg, U.g]) == [None, 1.*U.kg, 2000.*U.g]
 
 
-def test_quantity_tsb():
+def test_quantity_dataclass():
 
     @graph
     def g(ts: TS[float], u: TS[Unit], u1: TS[Unit]) -> TS[Quantity]:
-        v = TSB[Quantity].from_ts(qty=ts, unit=u)
-        return convert_units(v, u1).as_scalar_ts()
+        v = combine[TS[Quantity]](qty=ts, unit=u)
+        return convert_units(v, u1)
 
     assert eval_node(g, ts=[1.0, None, 2.0], u=[U.kg, None, None], u1=[None, U.kg, U.g]) == [None, 1.*U.kg, 2000.*U.g]
 
@@ -49,4 +49,3 @@ def test_mwh_to_therm():
         return convert(v, u1)
 
     assert eval_node(g, ts=[1.0], u=[U.MWh], u1=[U.therm]) == [34.12141633127942*U.therm]
-

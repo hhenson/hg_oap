@@ -2,16 +2,25 @@ from dataclasses import dataclass
 from numbers import Number
 
 from hg_oap.units.unit import Unit
-from hgraph import CompoundScalar, compute_node, div_, TS, mul_, add_, sub_, DivideByZero
+from hgraph import (
+    TimeSeriesSchema,
+    compute_node,
+    div_,
+    TS,
+    mul_,
+    add_,
+    sub_,
+    DivideByZero,
+)
 
-__all__ = ("Quantity",)
+__all__ = ("Quantity", "QuantityBundle")
 
 
 EPSILON = 1e-9
 
 
 @dataclass(frozen=True, eq=False, unsafe_hash=True, repr=False)
-class Quantity(CompoundScalar):
+class Quantity:
     qty: float
     unit: Unit
 
@@ -107,6 +116,9 @@ class Quantity(CompoundScalar):
 
     def as_(self, unit):
         return Quantity(self.unit.convert(self.qty, to=unit), unit)
+
+
+QuantityBundle = TimeSeriesSchema.from_scalar_schema(Quantity)
 
 
 @compute_node(overloads=div_)

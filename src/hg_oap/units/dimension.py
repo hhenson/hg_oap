@@ -3,14 +3,13 @@ from dataclasses import dataclass
 from typing import Tuple
 
 from hg_oap.units.unit_system import UnitSystem
-from hg_oap.utils.exprclass import ExprClass
 
 __all__ = ("Dimension", "Dimensionless", "PrimaryDimension", "DerivedDimension", "QualifiedDimension")
 
 
 @dataclass(frozen=True, kw_only=True, init=False)
-class Dimension(ExprClass):
-    name: str = None
+class Dimension:
+    name: str = ""
 
     def __new__(cls, name=None):
         assert cls is not Dimension, 'Base Dimension types is not instantiable.'
@@ -20,8 +19,8 @@ class Dimension(ExprClass):
                 return d
 
         n = super().__new__(cls)
+        object.__setattr__(n, 'name', name or "")
         if name:
-            object.__setattr__(n, 'name', name)
             UnitSystem.instance().__dimensions__[name] = n
 
         return n
@@ -67,10 +66,8 @@ class Dimension(ExprClass):
         return ((self, power),)
 
 
-@dataclass(frozen=True)
+@dataclass(frozen=True, init=False)
 class Dimensionless(Dimension):
-    name: str = 'dimensionless'
-
     def __new__(cls):
         if d := UnitSystem.instance().__dimensions__.get('dimensionless'):
             return d
@@ -95,7 +92,7 @@ class Dimensionless(Dimension):
         return ()
 
 
-@dataclass(frozen=True)
+@dataclass(frozen=True, init=False)
 class PrimaryDimension(Dimension):
     def __hash__(self):
         return id(self)
@@ -103,7 +100,6 @@ class PrimaryDimension(Dimension):
 
 @dataclass(frozen=True, kw_only=True, init=False)
 class DerivedDimension(Dimension):
-    name: str = lambda self: self._build_name()
     components: Tuple[Tuple[PrimaryDimension, int], ...]
 
     def __new__(cls, components, name=None):
@@ -127,8 +123,7 @@ class DerivedDimension(Dimension):
 
         n = super().__new__(cls)
         object.__setattr__(n, 'components', reduced_components)
-        if name:
-            type(n).name.__override__(n, name)
+        object.__setattr__(n, 'name', name or n._build_name())
         UnitSystem.instance().__derived_dimensions__[reduced_components] = n
         return n
 
@@ -148,7 +143,7 @@ class DerivedDimension(Dimension):
             return tuple((c, p*power) for c, p in self.components)
 
 
-@dataclass(frozen=True)
+@dataclass(frozen=True, init=False)
 class QualifiedDimension(Dimension):
     base: Dimension
     qualifier: object

@@ -1,5 +1,5 @@
 from collections import defaultdict
-from dataclasses import dataclass, field
+from dataclasses import dataclass, field, fields
 from typing import Any
 
 from frozendict import frozendict
@@ -12,6 +12,8 @@ from hg_oap.orders.order import ORDER, OrderState, SingleLegOrder, MultiLegOrder
 from hg_oap.orders.order_request_response_events import OrderRequest, CreateOrderRequest, OrderResponse, OrderEvent, \
     FillEvent
 from hg_oap.orders.order_type import MultiLegOrderType, SingleLegOrderType
+from hg_oap.pricing.price import Price
+from hg_oap.units.quantity import Quantity
 
 __all__ = ("order_client", "order_handler", "OrderHandlerOutputs", "OrderHandlerOutput")
 
@@ -241,14 +243,32 @@ def __compute_order_state_single(
 def apply_event_single_leg(confirmed: dict, event: OrderEvent) -> tuple[dict, dict]:
     out = {}
     if isinstance(event, FillEvent):
+        filled_qty = _quantity_from_bundle_value(confirmed["filled_qty"])
+        remaining_qty = _quantity_from_bundle_value(confirmed["remaining_qty"])
+        filled_notional = _price_from_bundle_value(confirmed["filled_notional"])
+        event_qty = _quantity_from_bundle_value(event.fill.qty)
+        event_notional = _price_from_bundle_value(event.fill.notional)
+
         out['fills'] = event.fill
-        out['filled_qty'] = confirmed['filled_qty'] + event.fill.qty
-        out['remaining_qty'] = (remaining_qty := confirmed['remaining_qty'] - event.fill.qty)
-        out['filled_notional'] = confirmed['filled_notional'] + event.fill.notional
+        out['filled_qty'] = _bundle_value(filled_qty + event_qty)
+        out['remaining_qty'] = _bundle_value(remaining_qty := remaining_qty - event_qty)
+        out['filled_notional'] = _bundle_value(filled_notional + event_notional)
         out['is_filled'] = bool(remaining_qty.qty <= 0.0)
 
     confirmed.update(confirmed)
     return confirmed, out
+
+
+def _quantity_from_bundle_value(value) -> Quantity:
+    return value if isinstance(value, Quantity) else Quantity(**value)
+
+
+def _price_from_bundle_value(value) -> Price:
+    return value if isinstance(value, Price) else Price(**value)
+
+
+def _bundle_value(value) -> dict:
+    return {field.name: getattr(value, field.name) for field in fields(value)}
 
 
 def apply_confirmation(confirmed: dict, response: OrderResponse) -> tuple[Any, dict]:

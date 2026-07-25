@@ -5,11 +5,10 @@ from hg_oap.units.default_unit_system import U
 from hg_oap.units.unit import Unit
 from hg_oap.units.unit_system import UnitConversionContext
 from hg_oap.utils.exprclass import ExprClass
-from hgraph import CompoundScalar
 
 
 @dataclass(frozen=True)
-class Asset(CompoundScalar, ExprClass, UnitConversionContext):
+class Asset(ExprClass, UnitConversionContext):
     """
     A thing of value that can be held.
     Assets are not instruments (i.e. cannot be traded directly), but can be used in instruments as underlyers.

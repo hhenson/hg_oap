@@ -3,6 +3,7 @@ from dataclasses import dataclass
 from hg_oap.instruments.instrument import Instrument
 from hg_oap.utils import SELF
 from hgraph import TS, TSB, graph
+from hgraph.stream import Stream
 
 __all__ = ("Index",)
 
@@ -28,4 +29,3 @@ def cascade(ts: TS[Instrument]) -> TSB[Stream[Instrument]]:
 
 
 #Promptness information
-

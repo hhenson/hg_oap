@@ -1,12 +1,12 @@
 from dataclasses import dataclass
 
 from hg_oap.instruments.instrument import Instrument
-from hgraph import TS, TSB, CompoundScalar, subscription_service
-from hgraph.stream.stream import Stream
+from hgraph import TS, TSB, subscription_service
+from hgraph.stream import Stream
 
 
 @dataclass(frozen=True)
-class InstrumentData(CompoundScalar):
+class InstrumentData:
     instrument: Instrument
 
 

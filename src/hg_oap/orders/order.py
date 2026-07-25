@@ -1,24 +1,24 @@
 from dataclasses import dataclass
 from typing import Generic, TypeVar
 
-from hgraph import TimeSeriesSchema, TS, TSS, CompoundScalar, TSD, TSB, reference_service
+from hgraph import TimeSeriesSchema, TS, TSS, TSD, TSB, reference_service
 
 from hg_oap.orders.order_type import OrderType, MultiLegOrderType, SingleLegOrderType
-from hg_oap.pricing.price import Price
-from hg_oap.units.quantity import Quantity
+from hg_oap.pricing.price import Price, PriceBundle
+from hg_oap.units.quantity import Quantity, QuantityBundle
 
 __all__ = (
     'ORDER', 'LEG_ID', 'OriginatorInfo', 'Fill', 'Order', 'SingleLegOrder', 'MultiLegOrder', 'OrderState',
     'order_states')
 
 
-@dataclass
-class OriginatorInfo(CompoundScalar):
+@dataclass(frozen=True)
+class OriginatorInfo:
     account: str
 
 
-@dataclass
-class Fill(CompoundScalar):
+@dataclass(frozen=True)
+class Fill:
     """
     A fill for a single leg order (or a single leg of a multi-leg order).
     The fill id represent the unique identifier of this fill. In the case
@@ -62,9 +62,9 @@ class SingleLegOrder(Order):
     provide the historical state of all received fills.
     """
     order_type: TS[SingleLegOrderType]
-    remaining_qty: TSB[Quantity]
-    filled_qty: TSB[Quantity]
-    filled_notional: TSB[Price]
+    remaining_qty: TSB[QuantityBundle]
+    filled_qty: TSB[QuantityBundle]
+    filled_notional: TSB[PriceBundle]
     is_filled: TS[bool]
     fills: TS[Fill]
 
@@ -79,9 +79,9 @@ class MultiLegOrder(Order):
     Examples include IfDone, OneCancelOther, etc.
     """
     order_type: TS[MultiLegOrderType]
-    remaining_qty: TSD[LEG_ID, TSB[Quantity]]
-    filled_qty: TSD[LEG_ID, TSB[Quantity]]
-    filled_notional: TSD[LEG_ID, TSB[Price]]
+    remaining_qty: TSD[LEG_ID, TSB[QuantityBundle]]
+    filled_qty: TSD[LEG_ID, TSB[QuantityBundle]]
+    filled_notional: TSD[LEG_ID, TSB[PriceBundle]]
     is_filled: TSD[LEG_ID, TS[bool]]
     fills: TSD[LEG_ID, TS[Fill]]
     is_leg_complete: TSD[LEG_ID, TS[bool]]

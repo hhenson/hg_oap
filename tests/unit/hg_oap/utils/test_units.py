@@ -1,8 +1,8 @@
-from dataclasses import dataclass
+from dataclasses import dataclass, is_dataclass
 
 import pytest
 
-from hg_oap.units.dimension import PrimaryDimension, DerivedDimension
+from hg_oap.units.dimension import Dimension, PrimaryDimension, DerivedDimension
 from hg_oap.units.default_unit_system import U as DEFAULT_UNIT_SYSTEM
 from hg_oap.units.quantity import Quantity
 from hg_oap.units.unit import PrimaryUnit, DerivedUnit, OffsetDerivedUnit, ComplexUnit
@@ -10,6 +10,12 @@ from hg_oap.units.unit import Unit
 from hg_oap.units.unit_system import UnitSystem, UnitConversionContext
 from hg_oap.utils.exprclass import ExprClass
 from hgraph import CompoundScalar
+
+
+def test_unit_types_are_python_owned_dataclasses():
+    for value_type in (Dimension, Unit, Quantity):
+        assert is_dataclass(value_type)
+        assert not issubclass(value_type, CompoundScalar)
 
 
 def test_default_unit_system_is_restored_after_context():

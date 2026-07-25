@@ -2,16 +2,16 @@ from dataclasses import dataclass
 from datetime import datetime
 from typing import Tuple
 
-from hgraph import operator, TS, TSB, graph, combine, str_, CompoundScalar, type_
+from hgraph import operator, TS, TSB, graph, combine, str_, type_
 from hgraph.adaptors.perspective import publish_multitable
-from hgraph.stream.stream import Stream
 from hgraph.reflection import resolved_type
+from hgraph.stream import Stream
 
 from hg_oap.pricing_service import PRICE, Price, PriceOpts, PricingModel
 
 
 @dataclass(frozen=True, kw_only=True)
-class PriceUIView(CompoundScalar):
+class PriceUIView:
     price: float
     timestamp: datetime
     currency: str

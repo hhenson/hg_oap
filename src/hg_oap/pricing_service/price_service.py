@@ -4,7 +4,7 @@ from typing import Type
 
 from hgraph import subscription_service, TS, graph, service_impl, TSS, TSD, AUTO_RESOLVE, dispatch, type_, \
     COMPOUND_SCALAR, mesh_, operator, combine, if_then_else, try_except, dedup, compute_node, filter_, log_, str_, \
-    CompoundScalar, switch_, valid, or_, TSB, default, getattr_, SCALAR
+    switch_, valid, or_, TSB, default, getattr_, SCALAR, DEFAULT
 from hgraph.stream.stream import StreamStatus
 from hgraph.reflection import operator_overloads, scalar_type
 
@@ -21,7 +21,7 @@ __all__ = ("subscribe_price", "subscribe_price_by_name", "price_service", "prici
 
 
 @operator
-def subscribe_price(request: TS[CompoundScalar]) -> PRICE:
+def subscribe_price(request: TS[COMPOUND_SCALAR]) -> DEFAULT[PRICE]:
     ...
 
 
@@ -38,7 +38,7 @@ def subscribe_price_by_request(
 def subscribe_price_by_name(
         request: TS[str], path: str = "instrument_price", price_type: Type[PRICE] = AUTO_RESOLVE) -> PRICE:
     pricing_request = combine[TS[PricingRequest]](instrument=request, opts=PriceOpts())
-    return subscribe_price(pricing_request, path, price_type)
+    return subscribe_price[price_type](pricing_request, path)
 
 
 @subscription_service

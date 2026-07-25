@@ -242,18 +242,18 @@ wheels = [
 
 [[package]]
 name = "hg-cpp"
-version = "0.4.1"
+version = "0.4.5"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "frozendict" },
     { name = "numpy" },
     { name = "pyarrow" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/34/aa/342141f4748f6957656ab024b85a3252098e66e12039d6b87457d6161769/hg_cpp-0.4.1.tar.gz", hash = "sha256:d3fb1a38b3b6b2d129d7d78403a6fd0daec871e695183cc706ca7ba097ec6813", size = 1979729, upload-time = "2026-07-20T13:08:38.142Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/6b/51/29d3a2b8fda16c47a9ce1b737681a5ceb8318b56dbc1ddea7a685fa591c8/hg_cpp-0.4.5.tar.gz", hash = "sha256:2accbf95afaaf0282c6442222eb89ac16f0308985b25da5dc061621383a150c8", size = 2297961, upload-time = "2026-07-25T16:03:53.589Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/c3/5f/601711b240d2c22080dddbaff0182b27baf902d4e63fd7fdb8d52a63fd5f/hg_cpp-0.4.1-cp312-abi3-macosx_15_0_arm64.whl", hash = "sha256:000e68e53df7670e6f263dbaa1b1be4a33ff5e60664df81ab8da979cb5c49cec", size = 14709746, upload-time = "2026-07-20T13:08:28.955Z" },
-    { url = "https://files.pythonhosted.org/packages/5a/97/f20efbba555ec0d62de3838b764c2dfd80a8e98231772e54d8d2a31630d9/hg_cpp-0.4.1-cp312-abi3-manylinux_2_27_x86_64.manylinux_2_28_x86_64.whl", hash = "sha256:66a11b5a509b5b7cd007fb20d5569fe2415385d84456e00c60da819e9f2fac92", size = 16968085, upload-time = "2026-07-20T13:08:31.853Z" },
-    { url = "https://files.pythonhosted.org/packages/1c/87/4de2717d21da91036f997b91176c07686e770f192b220d8c4dbe9b5b78ca/hg_cpp-0.4.1-cp312-abi3-win_amd64.whl", hash = "sha256:9bc5e275d26ab171b4b06c9f55b92cea2388023493693c70a38677d3158573dd", size = 52042252, upload-time = "2026-07-20T13:08:35.439Z" },
+    { url = "https://files.pythonhosted.org/packages/3a/80/93cff98af8514b4478f324ab9e91a6e00ba0df59ea443f9c9b64d8bc4de3/hg_cpp-0.4.5-cp312-abi3-macosx_15_0_arm64.whl", hash = "sha256:1b8c7773d822d09ccb4e14df7ae5bb08929519cf170732faaec91b241222b63e", size = 6908006, upload-time = "2026-07-25T16:03:47.428Z" },
+    { url = "https://files.pythonhosted.org/packages/b9/5e/ddcc6b223439cee77b7e1ae7f7bc848168bcb5d0e4dbd64e614a389d11af/hg_cpp-0.4.5-cp312-abi3-manylinux_2_27_x86_64.manylinux_2_28_x86_64.whl", hash = "sha256:edc7eea30828ef0119a6264c0bb4369cb52abc23ef687933f67b0c0e864a17cc", size = 9086439, upload-time = "2026-07-25T16:03:49.434Z" },
+    { url = "https://files.pythonhosted.org/packages/3e/b4/9ad9043b6cbb382fe9708408ffa5fac0acaaf2b59ca5a6b80c71b27adde8/hg_cpp-0.4.5-cp312-abi3-win_amd64.whl", hash = "sha256:69ce7e3147735df4f542ea4d00baa5327706c43356d1b7b47e556b7ac6f9a7c7", size = 16201001, upload-time = "2026-07-25T16:03:51.427Z" },
 ]
 
 [package.optional-dependencies]
@@ -263,7 +263,7 @@ web = [
 
 [[package]]
 name = "hg-oap"
-version = "0.1.14"
+version = "0.2.0"
 source = { editable = "." }
 dependencies = [
     { name = "hg-cpp", extra = ["web"] },
@@ -291,7 +291,7 @@ test = [
 [package.metadata]
 requires-dist = [
     { name = "coverage", marker = "extra == 'test'" },
-    { name = "hg-cpp", extras = ["web"], specifier = "==0.4.1" },
+    { name = "hg-cpp", extras = ["web"], specifier = ">=0.4.5" },
     { name = "holidays", specifier = ">=0.56" },
     { name = "mypy", marker = "extra == 'test'" },
     { name = "polars", specifier = ">=1.32" },

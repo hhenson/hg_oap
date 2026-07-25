@@ -141,7 +141,7 @@ class LmeFutureContractSeries(FutureContractSeries):
     first_trading_date: Expression[[date], date] = CONTRACT_BASE_DATE - '3m'  # This depends on contract base date
     last_trading_date: Expression[[date], date] = roll_bwd(CONTRACT_BASE_DATE - '1d').over(
         SELF.spec.trading_calendar)  # When the contract becomes TOM this is the last opportunity to traded. LDN time
-    last_trading_time: Expression[[date], date] = time(19, 0)  # Trades to EOD, many brokers may not.
+    last_trading_time: time = time(19, 0)  # Trades to EOD, many brokers may not.
 
     first_delivery_date: Expression[
         [date], date] = CONTRACT_BASE_DATE  # given a contract base date, produces the first delivery date

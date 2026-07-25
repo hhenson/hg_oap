@@ -2,7 +2,7 @@ from dataclasses import dataclass
 from datetime import date, time
 from typing import Generic, TypeVar
 
-from hgraph import CompoundScalar, TSB, TSD, Frame, graph, TS, map_, add_, switch_, compute_node, subscription_service, \
+from hgraph import TSB, TSD, Frame, graph, TS, map_, add_, switch_, compute_node, subscription_service, \
     request_reply_service, service_impl, register_service, combine, sample, flip, dedup, const
 from hgraph import merge, operator
 from hgraph.nodes import make_tsd
@@ -53,24 +53,24 @@ def instrument_service(path: str = 'instrument_service'):
 
 
 @dataclass(frozen=True)
-class Position(CompoundScalar, Generic[NUMBER]):
+class Position:
     """
     Position is a triplet of quantity, unit and instrument. In reality you almost never need to have an object
     representing a position, but rather a mapping of instruments to quantities
     """
-    qty: NUMBER
+    qty: float
     unit: Unit
     instrument: Instrument
 
 
-POSITIONS = TypeVar('POSITIONS', Position[float], Frame[Position[float]], TSD[str, TSB[Quantity]])
+POSITIONS = TypeVar('POSITIONS', Position, Frame[Position], TSD[str, TSB[Quantity]])
 
 
 ###################################################
 
 
-@dataclass
-class Price(CompoundScalar, Generic[NUMBER], ExprClass, UnitConversionContext):
+@dataclass(frozen=True)
+class Price(Generic[NUMBER], ExprClass, UnitConversionContext):
     """
     Price is a triplet of quantity, unit and currency unit, representing the price in the
     units of the currency unit per unit of the thing being priced, for example a triplet of
@@ -81,9 +81,6 @@ class Price(CompoundScalar, Generic[NUMBER], ExprClass, UnitConversionContext):
     unit: Unit
 
     unit_conversion_factors: tuple[Quantity, ...] = lambda self: (self.qty * (self.currency_unit / self.unit),)
-
-
-#####################
 
 
 @subscription_service
@@ -125,13 +122,13 @@ def convert_price_to_currency_units(price: TSB[Price], currency_unit: TS[Unit]) 
 ###################################################
 
 @operator
-def calculate_notional(positions: Position[float], currency: TS[Unit]) -> TSB[Quantity]:
+def calculate_notional(positions: Position, currency: TS[Unit]) -> TSB[Quantity]:
     ...
 
 
 @graph(overloads=calculate_notional)
-def calculate_notional_default(positions: Position[float], currency: TS[Unit]) -> TSB[Quantity]:
-    return calculate_notional_tsb(TSB[Position[float]].from_ts(
+def calculate_notional_default(positions: Position, currency: TS[Unit]) -> TSB[Quantity]:
+    return calculate_notional_tsb(TSB[Position].from_ts(
         qty=positions.qty,
         unit=dedup(const(positions.unit, TS[Unit])),
         instrument=dedup(positions.instrument)),
@@ -139,7 +136,7 @@ def calculate_notional_default(positions: Position[float], currency: TS[Unit]) -
 
 
 @graph(overloads=calculate_notional)
-def calculate_notional_tsb(position: TSB[Position[float]], currency_unit: TS[Unit]) -> TSB[Quantity]:
+def calculate_notional_tsb(position: TSB[Position], currency_unit: TS[Unit]) -> TSB[Quantity]:
     price = get_price(position.instrument.symbol)
     requires_conversion = price.currency_unit != currency_unit
     requires_currency_conversion = price.currency_unit.dimension != currency_unit.dimension
@@ -215,7 +212,7 @@ def test_example():
         gbpusd = FXSpot(symbol='GBPUSD', base=Currencies.GBP.value, quote=Currencies.USD.value)
         register_instrument(gbpusd)
 
-        zcm5_position = Position[float](qty=100., unit=U.lot, instrument=zck5)
+        zcm5_position = Position(qty=100., unit=U.lot, instrument=zck5)
         notional = calculate_notional(zcm5_position, currency=U.GBP)
 
         map_(lambda key, p: submit_price(key, p), prices)
