@@ -108,3 +108,8 @@ def test_stream_supports_python_owned_dataclass_payloads():
         "origin",
         "size",
     }
+
+
+def test_dataclass_models_define_bundle_schemas_directly():
+    assert set(time_series_fields(TSB[MarketPrice])) == {"price", "currency"}
+    assert set(time_series_fields(TSB[Quantity])) == {"qty", "unit"}

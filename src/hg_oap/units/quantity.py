@@ -3,7 +3,6 @@ from numbers import Number
 
 from hg_oap.units.unit import Unit
 from hgraph import (
-    TimeSeriesSchema,
     compute_node,
     div_,
     TS,
@@ -13,7 +12,7 @@ from hgraph import (
     DivideByZero,
 )
 
-__all__ = ("Quantity", "QuantityBundle")
+__all__ = ("Quantity",)
 
 
 EPSILON = 1e-9
@@ -116,9 +115,6 @@ class Quantity:
 
     def as_(self, unit):
         return Quantity(self.unit.convert(self.qty, to=unit), unit)
-
-
-QuantityBundle = TimeSeriesSchema.from_scalar_schema(Quantity)
 
 
 @compute_node(overloads=div_)
