@@ -6,7 +6,7 @@ from hgraph import TimeSeriesSchema, TS, Array, SIZE, TSB
 from hg_oap.assets.currency import Currency
 from hg_oap.units.unit import UNIT
 
-__all__ = ("Price", "PriceBundle", "L1Price", "L2Price", "PriceProfile")
+__all__ = ("Price", "L1Price", "L2Price", "PriceProfile")
 
 
 @dataclass(frozen=True)
@@ -23,9 +23,6 @@ class Price:
             return Price(price=self.price + other.price, currency=self.currency)
         else:
             raise ValueError(f"Cannot add {self} to {other} of {self.currency}")
-
-
-PriceBundle = TimeSeriesSchema.from_scalar_schema(Price)
 
 
 @dataclass

@@ -4,12 +4,12 @@ from hgraph.adaptors.data_frame import DATA_FRAME_SOURCE, tsd_k_b_from_data_sour
 
 from hg_oap.assets.currency import Currency
 from hg_oap.impl.assets.currency import Currencies
-from hg_oap.pricing.price import PriceBundle
+from hg_oap.pricing.price import Price
 
 __all__ =("price_mid", "price_mid_table_impl")
 
 @subscription_service
-def price_mid(instrument_id: TS[str], path: str = default_path) -> TSB[PriceBundle]:
+def price_mid(instrument_id: TS[str], path: str = default_path) -> TSB[Price]:
     """
     Simple pricing where the price is a simple value and currency, this is true of mid-prices, fixings, and other
     referenced prices that are often used for systematic trading strategies.
@@ -25,7 +25,7 @@ def price_mid_table_impl(
         price_col: str = 'price',
         currency_col: str = 'currency',
         static_currency: str = None
-) -> TSD[str, TSB[PriceBundle]]:
+) -> TSD[str, TSB[Price]]:
     """
     Produces a stream of pricing for the instruments subscribed to from the data frame produced by the DataFrameSource
     provided. To keep this simple, the input ids are ignored, we just produce a complete TSD of all potential
@@ -71,13 +71,13 @@ def price_mid_table_impl(
 
 
 @graph
-def _clean_up_static_currency(price: REF[TS[float]], currency: REF[TS[Currency]]) -> TSB[PriceBundle]:
-    return TSB[PriceBundle].from_ts(price=price, currency=currency)
+def _clean_up_static_currency(price: REF[TS[float]], currency: REF[TS[Currency]]) -> TSB[Price]:
+    return TSB[Price].from_ts(price=price, currency=currency)
 
 
 @graph
-def _clean_up_dynamic_currency(price: TSB[TS_SCHEMA], price_col: str, currency_col: str) -> TSB[PriceBundle]:
-    return TSB[PriceBundle].from_ts(
+def _clean_up_dynamic_currency(price: TSB[TS_SCHEMA], price_col: str, currency_col: str) -> TSB[Price]:
+    return TSB[Price].from_ts(
         price=getattr(price, price_col),
         currency=cast_(Currency, drop_dups(getattr(price, currency_col)))
     )
