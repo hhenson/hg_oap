@@ -23,8 +23,7 @@ classifiers = [
 ]
 requires-python = ">=3.12"
 dependencies = [
-    #"hgraph[web]>=0.5.25",
-    "hg_cpp[web]>=0.4.9",
+    "hgraph[web]>=0.5.41",
     "holidays >=0.56",
     "polars>=1.32",
 ]
