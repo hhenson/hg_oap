@@ -1,6 +1,6 @@
 [project]
 name = "hg_oap"
-version = "0.3.1"
+version = "0.3.2"
 description = "A library to faciliate building order and pricing strategies"
 readme = "README.md"
 license = {text = "MIT"}
