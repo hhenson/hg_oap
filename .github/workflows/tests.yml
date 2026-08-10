@@ -10,7 +10,20 @@ on:
 
 jobs:
   tests:
+    name: Tests (hgraph ${{ matrix.hgraph }})
     runs-on: ubuntu-latest
+
+    strategy:
+      # Report both lines rather than stopping at the first failure: which one
+      # broke is the useful signal.
+      fail-fast: false
+      matrix:
+        # This package supports clients on both hgraph lines, so both gate.
+        # "resolved" is whatever pyproject resolves to today, which is the 0.8
+        # C++-first line; "0.5" is the floor pyproject declares, which is the
+        # Python-first line. Testing only the former let a 0.5-only failure sit
+        # undetected until someone installed it by hand.
+        hgraph: [ resolved, "0.5" ]
 
     steps:
       - name: checkout
@@ -30,5 +43,18 @@ jobs:
       - name: Install dependencies
         run: uv sync --all-extras --all-groups
 
+      # `uv pip` needs an explicit interpreter: without one it installs into
+      # whichever environment it discovers, which is not necessarily the one
+      # `uv sync` just populated, and the pin silently does nothing.
+      - name: Pin hgraph to the 0.5 line
+        if: matrix.hgraph == '0.5'
+        run: uv pip install --python .venv/bin/python "hgraph[web]>=0.5.41,<0.6"
+
+      - name: Report the hgraph actually under test
+        run: .venv/bin/python -c "import importlib.metadata as m; print('hgraph', m.version('hgraph'))"
+
+      # --no-sync matters: a plain `uv run` re-syncs from the lock first, which
+      # would reinstate the resolved version and turn the 0.5 leg into a green
+      # no-op.
       - name: Run tests
-        run: uv run pytest -ra -q --dist=loadscope --cov=hg_oap --cov-report=xml
+        run: uv run --no-sync pytest -ra -q --dist=loadscope --cov=hg_oap --cov-report=xml
